@@ -33,16 +33,22 @@
             Grid.Row="1"
             Grid.Column="1"
             HorizontalOptions="End"
-            StrokeThickness="0">
+            StrokeThickness="1">
 
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="5,5,5,5" />
+                <RoundRectangle CornerRadius="5" />
             </Border.StrokeShape>
 
-            <Label x:Name="MarketChangeLabel"
-                Text="+15.16"
-                FontSize="Subtitle"
-                HorizontalTextAlignment="End" />
+            <VerticalStackLayout>
+                <Label x:Name="MarketChangeLabel"
+                    Text="+15.16"
+                    Margin="3"
+                    FontSize="Subtitle"
+                    MinimumWidthRequest="76"
+                    HorizontalTextAlignment="End" 
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="FillAndExpand" />
+            </VerticalStackLayout>
         </Border>
     </Grid>
 </ContentView>
