@@ -42,12 +42,12 @@ public partial class StockSymbolView : ContentView
         {
             if (value >= 0.0)
             {
-                MarketChangeLabelBorder.Background = Color.Parse("Green");
+                MarketChangeLabelBorder.BackgroundColor = Color.Parse("Green");
                 MarketChangeLabel.Text = string.Format("+{0:0.00}", value);
             }
             else
             {
-                MarketChangeLabelBorder.Background = Color.Parse("Red");
+                MarketChangeLabelBorder.BackgroundColor = Color.Parse("Red");
                 MarketChangeLabel.Text = string.Format("{0:0.00}", value);
             }
         }

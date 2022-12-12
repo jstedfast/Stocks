@@ -24,7 +24,7 @@
                 HorizontalOptions="End" />
 
             <Border x:Name="MarketChangeLabelBorder" Grid.Row="1" Grid.Column="1"
-                Background="Green"
+                BackgroundColor="Green"
                 HorizontalOptions="End"
                 StrokeThickness="1">
 
