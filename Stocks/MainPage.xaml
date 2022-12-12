@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             x:Class="Stocks.MainPage">
+
+    <VerticalStackLayout
+        Spacing="25"
+        Padding="8,0"
+        VerticalOptions="StartAndExpand">
+
+        <Label
+            Text="{Binding Source={x:Static system:DateTime.Today}, StringFormat='{0:MMMM d}'}"
+            SemanticProperties.HeadingLevel="Level1"
+            FontSize="32"
+            FontAttributes="Bold"
+            HorizontalOptions="Start"/>
+
+        <ScrollView>
+            <VerticalStackLayout
+                x:Name="StockLayout"
+                Spacing="25"
+                Padding="30,0"
+                VerticalOptions="Center">
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </VerticalStackLayout>
+
+</ContentPage>
