@@ -19,47 +19,6 @@ namespace Stocks
             client = new HttpClient(handler);
         }
 
-        public async Task<string> GetDescriptionAsync(string symbol, CancellationToken cancellationToken = default)
-        {
-            var requestUri = $"https://finance.yahoo.com/quote/{symbol}/history";
-            int startIndex, endIndex;
-            string html;
-
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
-            {
-                request.Headers.Add("Accept-Language", "en-US");
-                request.Headers.Add("Connection", "keep-alive");
-
-                using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
-                {
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine($"HTTP response failure for '{requestUri}': {response.StatusCode}");
-                    }
-
-                    html = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            if ((endIndex = html.IndexOf("(" + symbol + ")", StringComparison.Ordinal)) <= 0)
-            {
-                Console.WriteLine("Failed to locate \"({0})\" in:", symbol);
-                Console.WriteLine("{0}", html);
-                Console.WriteLine();
-                return string.Empty;
-            }
-
-            if (html[endIndex - 1] == ' ')
-                endIndex--;
-
-            startIndex = endIndex;
-
-            while (startIndex > 0 && html[startIndex - 1] != '>')
-                startIndex--;
-
-            return html.Substring(startIndex, endIndex - startIndex).Replace("&amp;", "&");
-        }
-
         public async Task<List<YahooStockQuote>> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
         {
             var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={string.Join(",", symbols)}";
