@@ -2,53 +2,48 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Stocks.Views.StockSymbolView">
-    <Grid RowSpacing="6" ColumnSpacing="6" RowDefinitions="*,*" ColumnDefinitions="*,*">
-        <Label x:Name="NameLabel"
-            Grid.Row="0"
-            Grid.Column="0"
-            Text="Dow Jones"
-            FontSize="Title"
-            FontAttributes="Bold"
-            HorizontalOptions="Start" />
+    <VerticalStackLayout Spacing="6">
+        <Grid RowSpacing="6" ColumnSpacing="6" RowDefinitions="*,*" ColumnDefinitions="*,*" Padding="8,0">
+            <Label x:Name="NameLabel" Grid.Row="0" Grid.Column="0"
+                Text="Dow Jones"
+                FontSize="Title"
+                FontAttributes="Bold"
+                HorizontalOptions="Start" />
 
-        <Label x:Name="DescriptionLabel"
-            Grid.Row="1"
-            Grid.Column="0"
-            Text="Dow Jones Industrial Average"
-            LineBreakMode="TailTruncation"
-            TextColor="Gray"
-            FontSize="Subtitle"
-            HorizontalOptions="Start" />
+            <Label x:Name="DescriptionLabel" Grid.Row="1" Grid.Column="0"
+                Text="Dow Jones Industrial Average"
+                LineBreakMode="TailTruncation"
+                TextColor="Gray"
+                FontSize="Subtitle"
+                HorizontalOptions="Start" />
 
-        <Label x:Name="MarketPriceLabel"
-            Grid.Row="0"
-            Grid.Column="1"
-            Text="33,800.47"
-            FontSize="Title"
-            FontAttributes="Bold"
-            HorizontalOptions="End" />
+            <Label x:Name="MarketPriceLabel" Grid.Row="0"  Grid.Column="1"
+                Text="33,800.47"
+                FontSize="Title"
+                FontAttributes="Bold"
+                HorizontalOptions="End" />
 
-        <Border x:Name="MarketChangeLabelBorder"
-            Background="Green"
-            Grid.Row="1"
-            Grid.Column="1"
-            HorizontalOptions="End"
-            StrokeThickness="1">
+            <Border x:Name="MarketChangeLabelBorder" Grid.Row="1" Grid.Column="1"
+                Background="Green"
+                HorizontalOptions="End"
+                StrokeThickness="1">
 
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="5" />
-            </Border.StrokeShape>
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="5" />
+                </Border.StrokeShape>
 
-            <VerticalStackLayout>
-                <Label x:Name="MarketChangeLabel"
-                    Text="+15.16"
-                    Margin="3"
-                    FontSize="Subtitle"
-                    MinimumWidthRequest="76"
-                    HorizontalTextAlignment="End" 
-                    HorizontalOptions="FillAndExpand"
-                    VerticalOptions="FillAndExpand" />
-            </VerticalStackLayout>
-        </Border>
-    </Grid>
+                <VerticalStackLayout>
+                    <Label x:Name="MarketChangeLabel"
+                        Text="+15.16"
+                        Margin="3"
+                        FontSize="Subtitle"
+                        MinimumWidthRequest="76"
+                        HorizontalTextAlignment="End" 
+                        HorizontalOptions="FillAndExpand"
+                        VerticalOptions="FillAndExpand" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+        <BoxView Color="Gray" HeightRequest="1" HorizontalOptions="Fill" VerticalOptions="Start" />
+    </VerticalStackLayout>
 </ContentView>

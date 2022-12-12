@@ -5,22 +5,24 @@
              x:Class="Stocks.MainPage">
 
     <VerticalStackLayout
-        Spacing="25"
-        Padding="8,0"
+        Spacing="10"
+        Padding="0,0"
         VerticalOptions="StartAndExpand">
 
         <Label
             Text="{Binding Source={x:Static system:DateTime.Today}, StringFormat='{0:MMMM d}'}"
             SemanticProperties.HeadingLevel="Level1"
+            Padding="8,0"
             FontSize="32"
             FontAttributes="Bold"
+            TextColor="Gray"
             HorizontalOptions="Start"/>
 
         <ScrollView>
             <VerticalStackLayout
                 x:Name="StockLayout"
-                Spacing="25"
-                Padding="30,0"
+                Spacing="6"
+                Padding="0,0"
                 VerticalOptions="Center">
 
             </VerticalStackLayout>
