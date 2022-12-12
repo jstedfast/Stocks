@@ -5,8 +5,7 @@
              x:Class="Stocks.MainPage">
 
     <VerticalStackLayout
-        Spacing="10"
-        Padding="0,0"
+        Spacing="6"
         VerticalOptions="StartAndExpand">
 
         <Label
@@ -16,16 +15,16 @@
             FontSize="32"
             FontAttributes="Bold"
             TextColor="Gray"
-            HorizontalOptions="Start"/>
+            HorizontalTextAlignment="Start"
+            HorizontalOptions="Start"
+            VerticalOptions="Start" />
 
-        <ScrollView>
-            <VerticalStackLayout
-                x:Name="StockLayout"
-                Spacing="6"
-                Padding="0,0"
-                VerticalOptions="Center">
-
-            </VerticalStackLayout>
+        <ScrollView VerticalOptions="FillAndExpand">
+            <TableView x:Name="StockTableView" Intent="Data" VerticalOptions="FillAndExpand">
+                <TableRoot>
+                    <TableSection />
+                </TableRoot>
+            </TableView>
         </ScrollView>
     </VerticalStackLayout>
 

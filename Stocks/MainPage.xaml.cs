@@ -78,7 +78,8 @@ public partial class MainPage : ContentPage
                     MarketPrice = price,
                     MarketChange = change
                 };
-                StockLayout.Add(view);
+
+                StockTableView.Root[0].Add(view);
             }
         }
     }
@@ -95,7 +96,7 @@ public partial class MainPage : ContentPage
         var dict = new Dictionary<string, StockSymbolView>();
         var symbols = new List<string>();
 
-        foreach (var stockView in StockLayout.Children.OfType<StockSymbolView>())
+        foreach (var stockView in StockTableView.Root[0].OfType<StockSymbolView>())
         {
             dict.Add(stockView.Symbol, stockView);
             symbols.Add(stockView.Symbol);

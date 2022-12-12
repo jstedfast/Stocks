@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Stocks.Views;
 
-public partial class StockSymbolView : ContentView
+public partial class StockSymbolView : ViewCell
 {
     public StockSymbolView()
     {
