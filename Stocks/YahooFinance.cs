@@ -4,13 +4,12 @@ using Newtonsoft.Json.Linq;
 
 namespace Stocks
 {
-    public class YahooFinance
+    public static class YahooFinance
     {
         static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        static HttpClient client;
 
-        HttpClient client;
-
-        public YahooFinance()
+        static YahooFinance()
         {
             var handler = new HttpClientHandler();
             handler.CookieContainer = new CookieContainer();
@@ -19,7 +18,7 @@ namespace Stocks
             client = new HttpClient(handler);
         }
 
-        public async Task<List<YahooStockQuote>> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
+        public static async Task<List<YahooStockQuote>> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
         {
             var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={string.Join(",", symbols)}";
             string content;
@@ -69,7 +68,7 @@ namespace Stocks
             return (long)(dt - UnixEpoch).TotalSeconds;
         }
 
-        public async Task<YahooStockData> GetHistoryAsync(string symbol, DateTime start, DateTime end, CancellationToken cancellationToken = default)
+        public static async Task<YahooStockData> GetHistoryAsync(string symbol, DateTime start, DateTime end, CancellationToken cancellationToken = default)
         {
             const string format = "https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval=1d&events=history&includeAdjustedClose=true";
             var requestUri = string.Format(format, symbol, SecondsSinceEpoch(start), SecondsSinceEpoch(end));
@@ -128,12 +127,6 @@ namespace Stocks
                     }
                 }
             } while (true);
-        }
-
-        public void Dispose()
-        {
-            client?.Dispose();
-            client = null;
         }
     }
 }

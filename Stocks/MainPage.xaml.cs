@@ -7,8 +7,6 @@ namespace Stocks;
 
 public partial class MainPage : ContentPage
 {
-    YahooFinance yahooFinance = new YahooFinance();
-
     public MainPage()
     {
         InitializeComponent();
@@ -103,7 +101,7 @@ public partial class MainPage : ContentPage
             symbols.Add(stockView.Symbol);
         }
 
-        var quotes = await yahooFinance.GetQuotesAsync(symbols);
+        var quotes = await YahooFinance.GetQuotesAsync(symbols);
 
         foreach (var quote in quotes)
         {
