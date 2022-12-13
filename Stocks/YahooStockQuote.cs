@@ -285,7 +285,25 @@ namespace Stocks
                 if (SymbolDescriptionOverrides.TryGetValue(Symbol, out var description))
                     return description;
 
-                return LongName ?? ShortName ?? DisplayName ?? string.Empty;
+                return LongName ?? ShortName ?? DisplayName ?? Symbol;
+            }
+        }
+
+        [JsonIgnore]
+        public string ExchangeDisplayName
+        {
+            get
+            {
+                if (FullExchangeName == "DJI")
+                    return "Dow Jones";
+
+                if (FullExchangeName.StartsWith("NASDAQ", StringComparison.OrdinalIgnoreCase))
+                    return "NASDAQ";
+
+                if (FullExchangeName == "SNP")
+                    return "S&P 500";
+
+                return FullExchangeName;
             }
         }
     }

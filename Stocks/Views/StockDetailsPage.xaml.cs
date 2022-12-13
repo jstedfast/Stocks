@@ -2,7 +2,8 @@ namespace Stocks.Views;
 
 public partial class StockDetailsPage : ContentPage
 {
-    const long OneHundredBillion = 10000000000;
+    const long OneTrillion = 1000000000000;
+    const long OneHundredBillion = 100000000000;
     const long TenBillion = 10000000000;
     const long OneBillion = 1000000000;
     const long OneHundredMillion = 100000000;
@@ -18,6 +19,21 @@ public partial class StockDetailsPage : ContentPage
         Title = quote.Name;
 
         SubtitleLabel.Text = quote.Description;
+
+        MarketPriceLabel.Text = Format(quote.RegularMarketPrice);
+        if (quote.RegularMarketPrice > 0)
+        {
+            MarketChangeLabel.Text = string.Format("+{0:0.00}", quote.RegularMarketChange);
+            MarketChangeLabel.TextColor = Color.Parse("Green");
+        }
+        else
+        {
+            MarketChangeLabel.Text = string.Format("{0:0.00}", quote.RegularMarketChange);
+            MarketChangeLabel.TextColor = Color.Parse("Red");
+        }
+
+        ExchangeLabel.Text = quote.ExchangeDisplayName;
+        CurrencyLabel.Text = quote.Currency;
 
         OpenLabel.Text = Format(quote.RegularMarketOpen);
         HighLabel.Text = Format(quote.RegularMarketDayHigh);
@@ -42,6 +58,9 @@ public partial class StockDetailsPage : ContentPage
             return "-";
 
         long v = value.Value;
+
+        if (v > OneTrillion)
+            return string.Format("{0:0.000}T", ((double)v) / OneTrillion);
 
         if (v > OneHundredBillion)
             return string.Format("{0:0.0}B", ((double)v) / OneBillion);

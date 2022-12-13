@@ -48,14 +48,16 @@ namespace Stocks
 
                 if (quoteResponse.TryGetValue("result", out token) && token.Type == JTokenType.Array)
                 {
-                    var array = (JArray) token;
+                    var results = (JArray) token;
 
-                    for (int i = 0; i < array.Count; i++)
+                    for (int i = 0; i < results.Count; i++)
                     {
-                        if (array[i].Type != JTokenType.Object)
+                        if (results[i].Type != JTokenType.Object)
                             continue;
 
-                        var quote = ((JObject)array[i]).ToObject<YahooStockQuote>();
+                        var result = (JObject)results[i];
+
+                        var quote = result.ToObject<YahooStockQuote>();
 
                         list.Add(quote);
                     }

@@ -13,7 +13,20 @@
             HorizontalTextAlignment="Start"
             HorizontalOptions="Start"
             VerticalOptions="Start" />
-        
+
+        <BoxView Color="Gray" Margin="8" HeightRequest="1" />
+
+        <HorizontalStackLayout Padding="8,0" Spacing="8">
+            <Label x:Name="MarketPriceLabel" FontAttributes="Bold" FontSize="Medium" HorizontalTextAlignment="Start" />
+            <Label x:Name="MarketChangeLabel" FontAttributes="Bold" FontSize="Medium" HorizontalTextAlignment="Start" />
+        </HorizontalStackLayout>
+
+        <HorizontalStackLayout Padding="8,0" Spacing="8">
+            <Label x:Name="ExchangeLabel" TextColor="Gray" FontSize="Micro" HorizontalTextAlignment="Start" />
+            <Label Text="⋅" TextColor="Gray" FontSize="Micro" HorizontalTextAlignment="Center" />
+            <Label x:Name="CurrencyLabel" TextColor="Gray" FontSize="Micro" HorizontalTextAlignment="Start" />
+        </HorizontalStackLayout>
+
         <!-- Add a chart here -->
 
         <ScrollView Orientation="Horizontal">
