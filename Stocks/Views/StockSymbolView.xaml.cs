@@ -1,6 +1,4 @@
-using System.Globalization;
-
-namespace Stocks.Views;
+﻿namespace Stocks.Views;
 
 public partial class StockSymbolView : ViewCell
 {
@@ -51,5 +49,13 @@ public partial class StockSymbolView : ViewCell
                 MarketChangeLabel.Text = string.Format("{0:0.00}", value);
             }
         }
+    }
+
+    public void Update (YahooStockQuote quote)
+    {
+        Name = quote.Name;
+        Description = quote.Description;
+        MarketPrice = quote.RegularMarketPrice;
+        MarketChange = quote.RegularMarketChange;
     }
 }

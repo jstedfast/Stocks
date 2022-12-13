@@ -30,69 +30,189 @@ namespace Stocks
             };
         }
 
-        public YahooStockQuote (JObject quote)
-        {
-            this.quote = quote;
-        }
+        [JsonProperty("language")]
+        public string Language { get; set; }
 
-        public string Symbol
-        {
-            get {
-                if (quote.TryGetValue("symbol", out var token) && token.Type == JTokenType.String)
-                    return (string) token;
+        [JsonProperty("region")]
+        public string Region { get; set; }
 
-                return string.Empty;
-            }
-        }
+        [JsonProperty("quoteType")]
+        public string QuoteType { get; set; }
 
+        [JsonProperty("typeDisp")]
+        public string TypeDisp { get; set; }
+
+        [JsonProperty("quoteSourceName")]
+        public string QuoteSourceName { get; set; }
+
+        [JsonProperty("triggerable")]
+        public bool Triggerable { get; set; }
+
+        [JsonProperty("customPriceAlertConfidence")]
+        public string CustomPriceAlertConfidence { get; set; }
+
+        [JsonProperty("currency")]
+        public string Currency { get; set; }
+
+        [JsonProperty("exchange")]
+        public string Exchange { get; set; }
+
+        [JsonProperty("shortName")]
+        public string ShortName { get; set; }
+
+        [JsonProperty("messageBoardId")]
+        public string MessageBoardId { get; set; }
+
+        [JsonProperty("exchangeTimezoneShortName")]
+        public string ExchangeTimezoneShortName { get; set; }
+
+        [JsonProperty("gmtOffSetMilliseconds")]
+        public int GmtOffSetMilliseconds { get; set; }
+
+        [JsonProperty("market")]
+        public string Market { get; set; }
+
+        [JsonProperty("regularMarketChangePercent")]
+        public float RegularMarketChangePercent { get; set; }
+
+        [JsonProperty("regularMarketPrice")]
+        public float RegularMarketPrice { get; set; }
+
+        [JsonProperty("marketState")]
+        public string MarketState { get; set; }
+
+        [JsonProperty("esgPopulated")]
+        public bool EsgPopulated { get; set; }
+
+        [JsonProperty("exchangeTimezoneName")]
+        public string ExchangeTimezoneName { get; set; }
+
+        [JsonProperty("regularMarketChange")]
+        public float RegularMarketChange { get; set; }
+
+        [JsonProperty("regularMarketTime")]
+        public int RegularMarketTime { get; set; }
+
+        [JsonProperty("regularMarketDayHigh")]
+        public float RegularMarketDayHigh { get; set; }
+
+        [JsonProperty("regularMarketDayRange")]
+        public string RegularMarketDayRange { get; set; }
+
+        [JsonProperty("regularMarketDayLow")]
+        public float RegularMarketDayLow { get; set; }
+
+        [JsonProperty("regularMarketVolume")]
+        public int RegularMarketVolume { get; set; }
+
+        [JsonProperty("regularMarketPreviousClose")]
+        public float RegularMarketPreviousClose { get; set; }
+
+        [JsonProperty("bid")]
+        public float Bid { get; set; }
+
+        [JsonProperty("ask")]
+        public float Ask { get; set; }
+
+        [JsonProperty("bidSize")]
+        public int BidSize { get; set; }
+
+        [JsonProperty("askSize")]
+        public int AskSize { get; set; }
+
+        [JsonProperty("fullExchangeName")]
+        public string FullExchangeName { get; set; }
+
+        [JsonProperty("regularMarketOpen")]
+        public float RegularMarketOpen { get; set; }
+
+        [JsonProperty("averageDailyVolume3Month")]
+        public int AverageDailyVolume3Month { get; set; }
+
+        [JsonProperty("averageDailyVolume10Day")]
+        public int AverageDailyVolume10Day { get; set; }
+
+        [JsonProperty("fiftyTwoWeekLowChange")]
+        public float FiftyTwoWeekLowChange { get; set; }
+
+        [JsonProperty("fiftyTwoWeekLowChangePercent")]
+        public float FiftyTwoWeekLowChangePercent { get; set; }
+
+        [JsonProperty("fiftyTwoWeekRange")]
+        public string FiftyTwoWeekRange { get; set; }
+
+        [JsonProperty("fiftyTwoWeekHighChange")]
+        public float FiftyTwoWeekHighChange { get; set; }
+
+        [JsonProperty("fiftyTwoWeekHighChangePercent")]
+        public float FiftyTwoWeekHighChangePercent { get; set; }
+
+        [JsonProperty("fiftyTwoWeekLow")]
+        public float FiftyTwoWeekLow { get; set; }
+
+        [JsonProperty("fiftyTwoWeekHigh")]
+        public float FiftyTwoWeekHigh { get; set; }
+
+        [JsonProperty("fiftyDayAverage")]
+        public float FiftyDayAverage { get; set; }
+
+        [JsonProperty("fiftyDayAverageChange")]
+        public float FiftyDayAverageChange { get; set; }
+
+        [JsonProperty("fiftyDayAverageChangePercent")]
+        public float FiftyDayAverageChangePercent { get; set; }
+
+        [JsonProperty("twoHundredDayAverage")]
+        public float TwoHundredDayAverage { get; set; }
+
+        [JsonProperty("twoHundredDayAverageChange")]
+        public float TwoHundredDayAverageChange { get; set; }
+
+        [JsonProperty("twoHundredDayAverageChangePercent")]
+        public float TwoHundredDayAverageChangePercent { get; set; }
+
+        [JsonProperty("sourceInterval")]
+        public int SourceInterval { get; set; }
+
+        [JsonProperty("exchangeDataDelayedBy")]
+        public int ExchangeDataDelayedBy { get; set; }
+
+        [JsonProperty("tradeable")]
+        public bool Tradeable { get; set; }
+
+        [JsonProperty("cryptoTradeable")]
+        public bool CryptoTradeable { get; set; }
+
+        [JsonProperty("firstTradeDateMilliseconds")]
+        public int FirstTradeDateMilliseconds { get; set; }
+
+        [JsonProperty("priceHint")]
+        public int PriceHint { get; set; }
+
+        [JsonProperty("symbol")]
+        public string Symbol { get; set; }
+
+        [JsonIgnore]
         public string Name
         {
             get
             {
-                var symbol = Symbol;
-
-                if (SymbolNameOverrides.TryGetValue(symbol, out var name))
+                if (SymbolNameOverrides.TryGetValue(Symbol, out var name))
                     return name;
 
-                return symbol;
+                return Symbol;
             }
         }
 
+        [JsonIgnore]
         public string Description
         {
             get
             {
-                var symbol = Symbol;
-
-                if (SymbolDescriptionOverrides.TryGetValue(symbol, out var description))
+                if (SymbolDescriptionOverrides.TryGetValue(Symbol, out var description))
                     return description;
 
-                if (quote.TryGetValue("shortName", out var token) && token.Type == JTokenType.String)
-                    return (string) token;
-
-                return string.Empty;
-            }
-        }
-
-        public double MarketPrice
-        {
-            get
-            {
-                if (quote.TryGetValue("regularMarketPrice", out var token) && token.Type == JTokenType.Float)
-                    return (double) token;
-
-                return 0;
-            }
-        }
-
-        public double MarketChange
-        {
-            get
-            {
-                if (quote.TryGetValue("regularMarketChange", out var token) && token.Type == JTokenType.Float)
-                    return (double) token;
-
-                return 0;
+                return ShortName ?? string.Empty;
             }
         }
     }

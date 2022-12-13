@@ -55,7 +55,9 @@ namespace Stocks
                         if (array[i].Type != JTokenType.Object)
                             continue;
 
-                        list.Add(new YahooStockQuote((JObject) array[i]));
+                        var quote = ((JObject)array[i]).ToObject<YahooStockQuote>();
+
+                        list.Add(quote);
                     }
                 }
             }

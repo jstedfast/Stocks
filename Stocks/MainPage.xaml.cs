@@ -110,10 +110,7 @@ public partial class MainPage : ContentPage
                 continue;
 
             // update view
-            view.Name = quote.Name;
-            view.Description = quote.Description;
-            view.MarketPrice = quote.MarketPrice;
-            view.MarketChange = quote.MarketChange;
+            view.Update(quote);
         }
     }
 }
