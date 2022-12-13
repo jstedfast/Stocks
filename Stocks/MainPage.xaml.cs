@@ -42,42 +42,9 @@ public partial class MainPage : ContentPage
                 if (symbols[i].Type != JTokenType.Object)
                     continue;
 
-                var item = (JObject)symbols[i];
-                if (!item.TryGetValue("symbol", out token) || token.Type != JTokenType.String)
-                    continue;
+                var quote = ((JObject)symbols[i]).ToObject<YahooStockQuote>();
 
-                string symbol = (string)token;
-                string name, description;
-                double price, change;
-
-                if (item.TryGetValue("name", out token) && token.Type == JTokenType.String)
-                    name = (string)token;
-                else
-                    name = string.Empty;
-
-                if (item.TryGetValue("description", out token) && token.Type == JTokenType.String)
-                    description = (string)token;
-                else
-                    description = string.Empty;
-
-                if (item.TryGetValue("marketPrice", out token) && token.Type == JTokenType.Float)
-                    price = (double)token;
-                else
-                    price = 0;
-
-                if (item.TryGetValue("marketChange", out token) && token.Type == JTokenType.Float)
-                    change = (double)token;
-                else
-                    change = 0;
-
-                var view = new StockSymbolView
-                {
-                    Symbol = symbol,
-                    Name = name,
-                    Description = description,
-                    MarketPrice = price,
-                    MarketChange = change
-                };
+                var view = new StockSymbolView(quote);
 
                 StockTableView.Root[0].Add(view);
             }

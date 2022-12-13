@@ -1,92 +1,37 @@
 ﻿{
   "symbols": [
     {
-      "symbol": "^DJI",
-      "name": "Dow Jones",
-      "description": "Dow Jones Industrial Average",
-      "marketPrice": 33737.13,
-      "marketChange": -44.35,
-      "percentChange": -0.13
+      "symbol": "^DJI"
     },
     {
-      "symbol": "^IXIC",
-      "name": "NASDAQ",
-      "description": "NASDAQ Composite",
-      "marketPrice": 11104.61,
-      "marketChange": 22.61,
-      "percentChange": 0.20
+      "symbol": "^IXIC"
     },
     {
-      "symbol": "^GSPC",
-      "name": "S&P 500",
-      "description": "Standard & Poor's 500",
-      "marketPrice": 3965.85,
-      "marketChange": 2.34,
-      "percentChange": 0.06
+      "symbol": "^GSPC"
     },
     {
-      "symbol": "MSFT",
-      "name": "MSFT",
-      "description": "Microsoft Corporation",
-      "marketPrice": 0.00,
-      "marketChange": 0.00,
-      "percentChange": 0.00
+      "symbol": "MSFT"
     },
     {
-      "symbol": "AAPL",
-      "name": "AAPL",
-      "description": "Apple Inc.",
-      "marketPrice": 0.00,
-      "marketChange": 0.00,
-      "percentChange": 0.00
+      "symbol": "AAPL"
     },
     {
-      "symbol": "GOOG",
-      "name": "GOOG",
-      "description": "Alphabet Inc.",
-      "marketPrice": 0.00,
-      "marketChange": 0.00,
-      "percentChange": 0.00
+      "symbol": "GOOG"
     },
     {
-      "symbol": "AMZN",
-      "name": "AMZN",
-      "description": "Amazon.com, Inc.",
-      "marketPrice": 0.00,
-      "marketChange": 0.00,
-      "percentChange": 0.00
+      "symbol": "AMZN"
     },
     {
-      "symbol": "META",
-      "name": "META",
-      "description": "Meta Platforms, Inc.",
-      "marketPrice": 0.00,
-      "marketChange": 0.00,
-      "percentChange": 0.00
+      "symbol": "META"
     },
     {
-      "symbol": "TSLA",
-      "name": "TSLA",
-      "description": "Tesla, Inc.",
-      "marketPrice": 0.00,
-      "marketChange": 0.00,
-      "percentChange": 0.00
+      "symbol": "TSLA"
     },
     {
-      "symbol": "NFLX",
-      "name": "NFLX",
-      "description": "Netflix, Inc.",
-      "marketPrice": 0.00,
-      "marketChange": 0.00,
-      "percentChange": 0.00
+      "symbol": "NFLX"
     },
     {
-      "symbol": "SBUX",
-      "name": "SBUX",
-      "description": "Starbucks Corporation",
-      "marketPrice": 0.00,
-      "marketChange": 0.00,
-      "percentChange": 0.00
+      "symbol": "SBUX"
     }
   ]
 }
