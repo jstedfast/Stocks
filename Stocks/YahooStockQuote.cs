@@ -13,7 +13,6 @@ namespace Stocks
     {
         static readonly Dictionary<string, string> SymbolDescriptionOverrides;
         static readonly Dictionary<string, string> SymbolNameOverrides;
-        readonly JObject quote;
 
         static YahooStockQuote ()
         {
@@ -103,7 +102,7 @@ namespace Stocks
         public float RegularMarketDayLow { get; set; }
 
         [JsonProperty("regularMarketVolume")]
-        public int RegularMarketVolume { get; set; }
+        public long RegularMarketVolume { get; set; }
 
         [JsonProperty("regularMarketPreviousClose")]
         public float RegularMarketPreviousClose { get; set; }
@@ -127,10 +126,10 @@ namespace Stocks
         public float RegularMarketOpen { get; set; }
 
         [JsonProperty("averageDailyVolume3Month")]
-        public int AverageDailyVolume3Month { get; set; }
+        public long AverageDailyVolume3Month { get; set; }
 
         [JsonProperty("averageDailyVolume10Day")]
-        public int AverageDailyVolume10Day { get; set; }
+        public long AverageDailyVolume10Day { get; set; }
 
         [JsonProperty("fiftyTwoWeekLowChange")]
         public float FiftyTwoWeekLowChange { get; set; }
@@ -184,12 +183,12 @@ namespace Stocks
         public bool CryptoTradeable { get; set; }
 
         [JsonProperty("firstTradeDateMilliseconds")]
-        public int FirstTradeDateMilliseconds { get; set; }
+        public long FirstTradeDateMilliseconds { get; set; }
 
         [JsonProperty("priceHint")]
         public int PriceHint { get; set; }
 
-        [JsonProperty("symbol")]
+        [JsonProperty("symbol", Required = Required.Always)]
         public string Symbol { get; set; }
 
         [JsonIgnore]
