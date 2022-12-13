@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Stocks.Views.StockDetailsPage"
+             Title="StockDetailsPage">
+    <VerticalStackLayout Spacing="6" VerticalOptions="Start">
+        <Label x:Name="SubtitleLabel"
+            SemanticProperties.HeadingLevel="Level1"
+            Padding="8,0"
+            FontSize="32"
+            FontAttributes="Bold"
+            TextColor="Gray"
+            HorizontalTextAlignment="Start"
+            HorizontalOptions="Start"
+            VerticalOptions="Start" />
+        
+        <!-- Add a chart here -->
+
+        <ScrollView Orientation="Horizontal">
+            <HorizontalStackLayout Padding="8,0">
+                <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" ColumnSpacing="8">
+                    <Label Grid.Row="0" Grid.Column="0" Text="Open" TextColor="Gray" HorizontalTextAlignment="Start" />
+                    <Label Grid.Row="0" Grid.Column="1" x:Name="OpenLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand"/>
+                    <Label Grid.Row="1" Grid.Column="0" Text="High" TextColor="Gray" HorizontalTextAlignment="Start" />
+                    <Label Grid.Row="1" Grid.Column="1" x:Name="HighLabel" HorizontalTextAlignment="End" HorizontalOptions="EndAndExpand" />
+                    <Label Grid.Row="2" Grid.Column="0" Text="Low" TextColor="Gray" HorizontalTextAlignment="Start" />
+                    <Label Grid.Row="3" Grid.Column="1" x:Name="LowLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
+                </Grid>
+
+                <BoxView Color="Gray" Margin="8" WidthRequest="1" />
+
+                <VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" ColumnSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Vol" TextColor="Gray" HorizontalTextAlignment="Start" />
+                        <Label Grid.Row="0" Grid.Column="1" x:Name="VolumeLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="P/E" TextColor="Gray" HorizontalTextAlignment="Start" />
+                        <Label Grid.Row="1" Grid.Column="1" x:Name="PELabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
+                        <Label Grid.Row="2" Grid.Column="0" Text="Mkt Cap" TextColor="Gray" HorizontalTextAlignment="Start" />
+                        <Label Grid.Row="3" Grid.Column="1" x:Name="MarketCapLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
+                    </Grid>
+                </VerticalStackLayout>
+
+                <BoxView Color="Gray" Margin="8" WidthRequest="1" />
+
+                <VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" ColumnSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" Text="52W H" TextColor="Gray" HorizontalTextAlignment="Start" />
+                        <Label Grid.Row="0" Grid.Column="1" x:Name="FiftyTwoWeekHighLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="52W L" TextColor="Gray" HorizontalTextAlignment="Start" />
+                        <Label Grid.Row="1" Grid.Column="1" x:Name="FiftyTwoWeekLowLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
+                        <Label Grid.Row="2" Grid.Column="0" Text="Avg Vol" TextColor="Gray" HorizontalTextAlignment="Start" />
+                        <Label Grid.Row="3" Grid.Column="1" x:Name="AverageVolumeLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
+                    </Grid>
+                </VerticalStackLayout>
+
+                <BoxView Color="Gray" Margin="8" WidthRequest="1" />
+
+                <VerticalStackLayout>
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" ColumnSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Yield" TextColor="Gray" HorizontalTextAlignment="Start" />
+                        <Label Grid.Row="0" Grid.Column="1" x:Name="YieldLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
+                        <Label Grid.Row="1" Grid.Column="0" Text="Beta" TextColor="Gray" HorizontalTextAlignment="Start" />
+                        <Label Grid.Row="1" Grid.Column="1" x:Name="BetaLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
+                        <Label Grid.Row="2" Grid.Column="0" Text="EPS" TextColor="Gray" HorizontalTextAlignment="Start" />
+                        <Label Grid.Row="3" Grid.Column="1" x:Name="EPSLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
+                    </Grid>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </ScrollView>
+    </VerticalStackLayout>
+</ContentPage>

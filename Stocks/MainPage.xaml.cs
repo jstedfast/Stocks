@@ -31,9 +31,8 @@ public partial class MainPage : ContentPage
 
         var text = File.ReadAllText(path);
         var json = JObject.Parse(text);
-        JToken token;
 
-        if (json.TryGetValue("symbols", out token) && token.Type == JTokenType.Array)
+        if (json.TryGetValue("symbols", out var token) && token.Type == JTokenType.Array)
         {
             var symbols = (JArray)token;
 
@@ -43,8 +42,8 @@ public partial class MainPage : ContentPage
                     continue;
 
                 var quote = ((JObject)symbols[i]).ToObject<YahooStockQuote>();
-
                 var view = new StockSymbolView(quote);
+                view.Tapped += OnStockSymbolTapped;
 
                 StockTableView.Root[0].Add(view);
             }
@@ -79,6 +78,15 @@ public partial class MainPage : ContentPage
             // update view
             view.Update(quote);
         }
+    }
+
+    async void OnStockSymbolTapped(object sender, EventArgs args)
+    {
+        var view = (StockSymbolView)sender;
+
+        var page = new StockDetailsPage(view.Quote);
+
+        await Navigation.PushAsync(page, true);
     }
 }
 

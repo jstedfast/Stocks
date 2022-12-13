@@ -10,7 +10,9 @@ public partial class StockSymbolView : ViewCell
         Update(quote);
     }
 
-    public string Symbol { get { return quote?.Symbol; } }
+    public string Symbol { get { return quote.Symbol; } }
+
+    public YahooStockQuote Quote { get { return quote; } }
 
     public void Update (YahooStockQuote quote)
     {

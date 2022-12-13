@@ -4,9 +4,7 @@
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              x:Class="Stocks.MainPage">
 
-    <VerticalStackLayout
-        Spacing="6"
-        VerticalOptions="StartAndExpand">
+    <VerticalStackLayout Spacing="6" VerticalOptions="Start">
 
         <Label
             Text="{Binding Source={x:Static system:DateTime.Today}, StringFormat='{0:MMMM d}'}"
@@ -19,13 +17,14 @@
             HorizontalOptions="Start"
             VerticalOptions="Start" />
 
-        <ScrollView VerticalOptions="FillAndExpand">
+        <ScrollView Orientation="Vertical" VerticalOptions="FillAndExpand">
             <TableView x:Name="StockTableView" Intent="Data" VerticalOptions="FillAndExpand">
                 <TableRoot>
                     <TableSection />
                 </TableRoot>
             </TableView>
         </ScrollView>
+
     </VerticalStackLayout>
 
 </ContentPage>
