@@ -10,7 +10,7 @@
             Text="{Binding Source={x:Static system:DateTime.Today}, StringFormat='{0:MMMM d}'}"
             SemanticProperties.HeadingLevel="Level1"
             Padding="8,0"
-            FontSize="32"
+            FontSize="Title"
             FontAttributes="Bold"
             TextColor="Gray"
             HorizontalTextAlignment="Start"

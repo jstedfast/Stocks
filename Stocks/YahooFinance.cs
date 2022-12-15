@@ -6,6 +6,7 @@ namespace Stocks
 {
     public static class YahooFinance
     {
+        static readonly string[] TimeRanges = new string[] { "1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max" };
         static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         static HttpClient client;
 
@@ -16,6 +17,58 @@ namespace Stocks
             handler.UseCookies = true;
 
             client = new HttpClient(handler);
+        }
+
+        static void GenerateCSharpFromJson(JArray results)
+        {
+            var properties = new SortedDictionary<string, JTokenType>();
+            var counts = new Dictionary<string, int>();
+
+            for (int i = 0; i < results.Count; i++)
+            {
+                if (results[i].Type != JTokenType.Object)
+                    continue;
+
+                var result = (JObject)results[i];
+
+                foreach (var property in result.Properties())
+                {
+                    if (!properties.TryGetValue(property.Name, out var type) || type == JTokenType.Null)
+                        properties[property.Name] = property.Value.Type;
+
+                    counts.TryGetValue(property.Name, out int count);
+                    counts[property.Name] = count + 1;
+                }
+            }
+
+            var sb = new System.Text.StringBuilder();
+            foreach (var property in properties)
+            {
+                sb.Append($"[JsonProperty(\"{property.Key}\"");
+                if (property.Key == "symbol")
+                    sb.Append(", Required = Required.Always");
+                else if (counts[property.Key] < results.Count)
+                    sb.Append(", NullValueHandling = NullValueHandling.Ignore");
+                sb.AppendLine(")]");
+                sb.Append("public ");
+                switch (property.Value)
+                {
+                    case JTokenType.Boolean: sb.Append("bool"); break;
+                    case JTokenType.String: sb.Append("string"); break;
+                    case JTokenType.Integer: sb.Append("long"); break;
+                    case JTokenType.Float: sb.Append("double"); break;
+                    default: sb.Append(property.Value.ToString()); break;
+                }
+                if (property.Value != JTokenType.String && counts[property.Key] < results.Count)
+                    sb.Append('?');
+                sb.Append(' ');
+                sb.Append(char.ToUpperInvariant(property.Key[0]));
+                sb.Append(property.Key, 1, property.Key.Length - 1);
+                sb.AppendLine(" { get; set; }");
+                sb.AppendLine();
+            }
+
+            var text = sb.ToString();
         }
 
         public static async Task<List<YahooStockQuote>> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
@@ -61,10 +114,178 @@ namespace Stocks
 
                         list.Add(quote);
                     }
+
+                    //GenerateCSharpFromJson(results);
                 }
             }
 
             return list;
+        }
+
+        // Note: I think this is the data used for generating the mini graph for each stock symbol on their repsective TableView rows in the iOS Stocks app.
+        public static async Task GetSparkAsync(IEnumerable<string> symbols, YahooTimeRange range, CancellationToken cancellationToken = default)
+        {
+            string requestUri = $"https://query1.finance.yahoo.com/v7/finance/spark?symbols={string.Join(",", symbols)}&range={TimeRanges[(int)range]}&interval=5m&indicators=close&includeTimestamps=false&includePrePost=false&corsDomain=finance.yahoo.com&.tsrc=finance";
+            string content;
+
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.Headers.Add("Accept-Language", "en-US");
+                request.Headers.Add("Connection", "keep-alive");
+
+                using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
+                {
+                    content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"HTTP response failure for '{requestUri}': {response.StatusCode}");
+                    }
+                }
+            }
+
+            var json = JObject.Parse(content);
+            var list = new List<JObject>();
+
+            if (json.TryGetValue("spark", out var token) && token.Type == JTokenType.Object)
+            {
+                var quoteResponse = (JObject)token;
+
+                if (quoteResponse.TryGetValue("result", out token) && token.Type == JTokenType.Array)
+                {
+                    var results = (JArray)token;
+
+                    for (int i = 0; i < results.Count; i++)
+                    {
+                        if (results[i].Type != JTokenType.Object)
+                            continue;
+
+                        var result = (JObject)results[i];
+
+                        list.Add(result);
+                    }
+
+                    GenerateCSharpFromJson(results);
+                }
+            }
+        }
+
+        static string GetChartInterval(YahooTimeRange range)
+        {
+            if (range == YahooTimeRange.OneDay)
+                return "1m";
+            if (range == YahooTimeRange.FiveDay)
+                return "5m";
+            return "1d";
+        }
+
+        static void GetChartParameters(YahooStockQuote quote, YahooTimeRange range, out DateTime start, out DateTime end)
+        {
+            DateTime firstTradeDate = UnixEpoch.AddMilliseconds(quote.FirstTradeDateMilliseconds);
+            DateTime now = DateTime.UtcNow;
+
+            start = new DateTime(now.Year, now.Month, now.Day, 10, 0, 0, DateTimeKind.Utc);
+            end = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc);
+
+            switch (range)
+            {
+                case YahooTimeRange.OneDay:
+                    start = start.AddMilliseconds(quote.GmtOffSetMilliseconds);
+                    break;
+                case YahooTimeRange.FiveDay:
+                    // Note: 5 business days ago is the same as 7 days ago.
+                    start = start.AddDays(-7);
+                    break;
+                case YahooTimeRange.OneMonth:
+                    start = start.AddMonths(-1);
+                    break;
+                case YahooTimeRange.ThreeMonth:
+                    start = start.AddMonths(-3);
+                    break;
+                case YahooTimeRange.SixMonth:
+                    start = start.AddMonths(-6);
+                    break;
+                case YahooTimeRange.OneYear:
+                    start = start.AddYears(-1);
+                    break;
+                case YahooTimeRange.TwoYear:
+                    start = start.AddYears(-2);
+                    break;
+                case YahooTimeRange.FiveYear:
+                    start = start.AddYears(-5);
+                    break;
+                case YahooTimeRange.TenYear:
+                    start = start.AddYears(-10);
+                    break;
+                case YahooTimeRange.YearToDate:
+                    start = new DateTime(start.Year, 1, 1, 10, 0, 0, DateTimeKind.Utc);
+                    break;
+            }
+
+            if (start < firstTradeDate)
+                start = firstTradeDate;
+
+            // TODO: Do we need to worry about the GMT offset at all?
+        }
+
+        // Note: Pretty sure this is the data used to generate the multi-tab chart in the Details View.
+        public static async Task GetChartAsync(YahooStockQuote quote, YahooTimeRange range, CancellationToken cancellationToken = default)
+        {
+            const string format = "https://query1.finance.yahoo.com/v8/finance/chart/{0}?symbol={1}&period1={2}&period2={3}&useYfid=true&interval={4}&includePrePost=true&events=div|split|earn&lang=en-US&region=US&crumb=ibG1c1O0H9S&corsDomain=finance.yahoo.com";
+            var interval = GetChartInterval(range);
+
+            //period1: 1670878800
+            //period2: 1671051600
+
+            // Approx 7 PM EST on Dec 14, 2022
+            var period1 = UnixEpoch.AddSeconds(1670878800);
+            var period2 = UnixEpoch.AddSeconds(1671051600);
+
+            GetChartParameters(quote, range, out var start, out var end);
+
+            var requestUri = string.Format(format, quote.Symbol, quote.Symbol, SecondsSinceEpoch(period1), SecondsSinceEpoch(period2), interval);
+            string content;
+
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.Headers.Add("Accept-Language", "en-US");
+                request.Headers.Add("Connection", "keep-alive");
+
+                using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
+                {
+                    content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"HTTP response failure for '{requestUri}': {response.StatusCode}");
+                    }
+                }
+            }
+
+            var json = JObject.Parse(content);
+            var list = new List<JObject>();
+
+            if (json.TryGetValue("chart", out var token) && token.Type == JTokenType.Object)
+            {
+                var quoteResponse = (JObject)token;
+
+                if (quoteResponse.TryGetValue("result", out token) && token.Type == JTokenType.Array)
+                {
+                    var results = (JArray)token;
+
+                    for (int i = 0; i < results.Count; i++)
+                    {
+                        if (results[i].Type != JTokenType.Object)
+                            continue;
+
+                        var result = (JObject)results[i];
+
+                        list.Add(result);
+                    }
+
+                    //GenerateCSharpFromJson(results);
+                }
+            }
         }
 
         static long SecondsSinceEpoch(DateTime dt)

@@ -1,0 +1,9 @@
+{
+  "chart": {
+    "result": null,
+    "error": {
+      "code": "Bad Request",
+      "description": "Invalid input - start date cannot be after end date. startDate = 1671098400, endDate = 1671062400"
+    }
+  }
+}
