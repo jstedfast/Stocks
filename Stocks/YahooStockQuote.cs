@@ -4,6 +4,10 @@ namespace Stocks
 {
     public class YahooStockQuote
     {
+        const int MillisecondsPerSecond = 1000;
+        const int MillisecondsPerMinute = 60 * MillisecondsPerSecond;
+        const int MillisecondsPerHour = 60 * MillisecondsPerMinute;
+
         static readonly Dictionary<string, string> SymbolDescriptionOverrides;
         static readonly Dictionary<string, string> SymbolNameOverrides;
 
@@ -304,6 +308,23 @@ namespace Stocks
                     return "S&P 500";
 
                 return FullExchangeName;
+            }
+        }
+
+        [JsonIgnore]
+        public TimeSpan GmtOffset
+        {
+            get
+            {
+                var offset = GmtOffSetMilliseconds;
+
+                int hours = (int) offset / MillisecondsPerHour;
+                offset = offset % MillisecondsPerHour;
+                int minutes = (int) offset / MillisecondsPerMinute;
+                offset = offset % MillisecondsPerMinute;
+                int seconds = (int) offset / MillisecondsPerSecond;
+
+                return new TimeSpan(hours, minutes, seconds);
             }
         }
     }

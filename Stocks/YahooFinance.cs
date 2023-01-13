@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text;
 
 using Newtonsoft.Json.Linq;
 
@@ -41,7 +42,7 @@ namespace Stocks
                 }
             }
 
-            var sb = new System.Text.StringBuilder();
+            var sb = new StringBuilder();
             foreach (var property in properties)
             {
                 sb.Append($"[JsonProperty(\"{property.Key}\"");
@@ -179,18 +180,21 @@ namespace Stocks
             return "1d";
         }
 
-        static void GetChartParameters(YahooStockQuote quote, YahooTimeRange range, out DateTime start, out DateTime end)
+        static void GetChartParameters(YahooStockQuote quote, YahooTimeRange range, out DateTime period1, out DateTime period2)
         {
             DateTime firstTradeDate = UnixEpoch.AddMilliseconds(quote.FirstTradeDateMilliseconds);
-            DateTime now = DateTime.UtcNow;
+            var tzOffset = quote.GmtOffset;
+            DateTime now = DateTime.Now;
 
-            start = new DateTime(now.Year, now.Month, now.Day, 10, 0, 0, DateTimeKind.Utc);
-            end = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, DateTimeKind.Utc);
+            var start = new DateTimeOffset(now.Year, now.Month, now.Day, 10, 0, 0, tzOffset);
+            if (start > now)
+                start = start.AddDays(-1);
+
+            var end = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, tzOffset);
 
             switch (range)
             {
                 case YahooTimeRange.OneDay:
-                    start = start.AddMilliseconds(quote.GmtOffSetMilliseconds);
                     break;
                 case YahooTimeRange.FiveDay:
                     // Note: 5 business days ago is the same as 7 days ago.
@@ -218,12 +222,18 @@ namespace Stocks
                     start = start.AddYears(-10);
                     break;
                 case YahooTimeRange.YearToDate:
-                    start = new DateTime(start.Year, 1, 1, 10, 0, 0, DateTimeKind.Utc);
+                    start = new DateTimeOffset(start.Year, 1, 1, 10, 0, 0, tzOffset);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(range));
             }
 
-            if (start < firstTradeDate)
-                start = firstTradeDate;
+            // convert to UTC date/time
+            period1 = start.ToUniversalTime().DateTime;
+            period2 = end.ToUniversalTime().DateTime;
+
+            if (period1 < firstTradeDate)
+                period1 = firstTradeDate;
 
             // TODO: Do we need to worry about the GMT offset at all?
         }
@@ -238,10 +248,10 @@ namespace Stocks
             //period2: 1671051600
 
             // Approx 7 PM EST on Dec 14, 2022
-            var period1 = UnixEpoch.AddSeconds(1670878800);
-            var period2 = UnixEpoch.AddSeconds(1671051600);
+            //var period1 = UnixEpoch.AddSeconds(1670878800);
+            //var period2 = UnixEpoch.AddSeconds(1671051600);
 
-            GetChartParameters(quote, range, out var start, out var end);
+            GetChartParameters(quote, range, out var period1, out var period2);
 
             var requestUri = string.Format(format, quote.Symbol, quote.Symbol, SecondsSinceEpoch(period1), SecondsSinceEpoch(period2), interval);
             string content;
