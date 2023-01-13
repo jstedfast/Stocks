@@ -9,9 +9,9 @@ public partial class StockDetailsPage : ContentPage
     const long OneHundredMillion = 100000000;
     const long TenMillion = 10000000;
     const long OneMillion = 1000000;
-    readonly YahooStockQuote quote;
+    readonly YahooFinanceQuote quote;
 
-    public StockDetailsPage(YahooStockQuote quote)
+    public StockDetailsPage(YahooFinanceQuote quote)
     {
         InitializeComponent();
         this.quote = quote;

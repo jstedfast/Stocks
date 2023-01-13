@@ -41,7 +41,7 @@ public partial class MainPage : ContentPage
                 if (symbols[i].Type != JTokenType.Object)
                     continue;
 
-                var quote = ((JObject)symbols[i]).ToObject<YahooStockQuote>();
+                var quote = ((JObject)symbols[i]).ToObject<YahooFinanceQuote>();
                 var view = new StockSymbolView(quote);
                 view.Tapped += OnStockSymbolTapped;
 

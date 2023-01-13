@@ -2,7 +2,7 @@
 
 namespace Stocks
 {
-    public class YahooStockQuote
+    public class YahooFinanceQuote
     {
         const int MillisecondsPerSecond = 1000;
         const int MillisecondsPerMinute = 60 * MillisecondsPerSecond;
@@ -11,7 +11,7 @@ namespace Stocks
         static readonly Dictionary<string, string> SymbolDescriptionOverrides;
         static readonly Dictionary<string, string> SymbolNameOverrides;
 
-        static YahooStockQuote ()
+        static YahooFinanceQuote ()
         {
             SymbolNameOverrides = new Dictionary<string, string>
             {

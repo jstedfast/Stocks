@@ -20,62 +20,128 @@ namespace Stocks
             client = new HttpClient(handler);
         }
 
-        static void GenerateCSharpFromJson(JArray results)
+        static string GenerateCSharpFromJson(string name, SortedDictionary<string, JTokenType> properties, Dictionary<string, int> counts = null, int arrayCount = 0)
+        {
+            var builder = new StringBuilder();
+
+            builder.AppendLine("using Newtonsoft.Json;");
+            builder.AppendLine();
+            builder.AppendLine("namespace Stocks");
+            builder.AppendLine("{");
+            builder.AppendLine($"    public class {name}");
+            builder.AppendLine("    {");
+
+            foreach (var property in properties)
+            {
+                builder.Append($"        [JsonProperty(\"{property.Key}\"");
+                if (property.Key == "symbol")
+                    builder.Append(", Required = Required.Always");
+                else if (counts != null && counts[property.Key] < arrayCount)
+                    builder.Append(", NullValueHandling = NullValueHandling.Ignore");
+                builder.AppendLine(")]");
+                builder.Append("        public ");
+
+                var propertyName = char.ToUpperInvariant(property.Key[0]) + property.Key.Substring(1, property.Key.Length - 1);
+
+                switch (property.Value)
+                {
+                    case JTokenType.Boolean: builder.Append("bool"); break;
+                    case JTokenType.String: builder.Append("string"); break;
+                    case JTokenType.Integer: builder.Append("long"); break;
+                    case JTokenType.Float: builder.Append("double"); break;
+                    case JTokenType.Object: builder.Append($"{name}{propertyName}"); break;
+                    case JTokenType.Array: builder.Append($"{name}{propertyName}[]"); break;
+                    default: builder.Append(property.Value.ToString()); break;
+                }
+                if (counts != null && property.Value != JTokenType.String && counts[property.Key] < arrayCount)
+                    builder.Append('?');
+                builder.Append(' ');
+                builder.Append(propertyName);
+                builder.AppendLine(" { get; set; }");
+                builder.AppendLine();
+            }
+
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var text = builder.ToString();
+
+            return text;
+        }
+
+        static string GenerateCSharpFromJson(string name, JObject item)
+        {
+            var properties = new SortedDictionary<string, JTokenType>();
+
+            foreach (var property in item.Properties())
+            {
+                if (!properties.TryGetValue(property.Name, out var type) || type == JTokenType.Null)
+                {
+                    properties[property.Name] = property.Value.Type;
+
+                    string typeName;
+
+                    switch (property.Value.Type)
+                    {
+                        case JTokenType.Array:
+                            typeName = name + char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1, property.Name.Length - 1);
+                            GenerateCSharpFromJson(typeName, (JArray)property.Value);
+                            break;
+                        case JTokenType.Object:
+                            typeName = name + char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1, property.Name.Length - 1);
+                            GenerateCSharpFromJson(typeName, (JObject)property.Value);
+                            break;
+                    }
+                }
+            }
+
+            return GenerateCSharpFromJson(name, properties);
+        }
+
+        static string GenerateCSharpFromJson(string name, JArray array)
         {
             var properties = new SortedDictionary<string, JTokenType>();
             var counts = new Dictionary<string, int>();
 
-            for (int i = 0; i < results.Count; i++)
+            for (int i = 0; i < array.Count; i++)
             {
-                if (results[i].Type != JTokenType.Object)
+                if (array[i].Type != JTokenType.Object)
                     continue;
 
-                var result = (JObject)results[i];
+                var result = (JObject)array[i];
 
                 foreach (var property in result.Properties())
                 {
                     if (!properties.TryGetValue(property.Name, out var type) || type == JTokenType.Null)
+                    {
                         properties[property.Name] = property.Value.Type;
+
+                        string typeName;
+
+                        switch (property.Value.Type)
+                        {
+                            case JTokenType.Array:
+                                typeName = name + char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1, property.Name.Length - 1);
+                                GenerateCSharpFromJson(typeName, (JArray)property.Value);
+                                break;
+                            case JTokenType.Object:
+                                typeName = name + char.ToUpperInvariant(property.Name[0]) + property.Name.Substring(1, property.Name.Length - 1);
+                                GenerateCSharpFromJson(typeName, (JObject)property.Value);
+                                break;
+                        }
+                    }
 
                     counts.TryGetValue(property.Name, out int count);
                     counts[property.Name] = count + 1;
                 }
             }
 
-            var sb = new StringBuilder();
-            foreach (var property in properties)
-            {
-                sb.Append($"[JsonProperty(\"{property.Key}\"");
-                if (property.Key == "symbol")
-                    sb.Append(", Required = Required.Always");
-                else if (counts[property.Key] < results.Count)
-                    sb.Append(", NullValueHandling = NullValueHandling.Ignore");
-                sb.AppendLine(")]");
-                sb.Append("public ");
-                switch (property.Value)
-                {
-                    case JTokenType.Boolean: sb.Append("bool"); break;
-                    case JTokenType.String: sb.Append("string"); break;
-                    case JTokenType.Integer: sb.Append("long"); break;
-                    case JTokenType.Float: sb.Append("double"); break;
-                    default: sb.Append(property.Value.ToString()); break;
-                }
-                if (property.Value != JTokenType.String && counts[property.Key] < results.Count)
-                    sb.Append('?');
-                sb.Append(' ');
-                sb.Append(char.ToUpperInvariant(property.Key[0]));
-                sb.Append(property.Key, 1, property.Key.Length - 1);
-                sb.AppendLine(" { get; set; }");
-                sb.AppendLine();
-            }
-
-            var text = sb.ToString();
+            return GenerateCSharpFromJson(name, properties, counts, array.Count);
         }
 
-        public static async Task<List<YahooStockQuote>> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
+        public static async Task<YahooFinanceQuote[]> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
         {
             var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={string.Join(",", symbols)}";
-            string content;
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -84,50 +150,21 @@ namespace Stocks
 
                 using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
-                    content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                    var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                    var json = JObject.Parse(content).ToObject<YahooFinanceQuoteResponse>();
 
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine($"HTTP response failure for '{requestUri}': {response.StatusCode}");
-                    }
+                    if (json.Data?.Error != null)
+                        throw new YahooFinanceException(response.StatusCode, json.Data.Error.Code, json.Data.Error.Description);
+
+                    return json.Data.Result;
                 }
             }
-
-            var json = JObject.Parse(content);
-            var list = new List<YahooStockQuote>();
-
-            if (json.TryGetValue("quoteResponse", out var token) && token.Type == JTokenType.Object)
-            {
-                var quoteResponse = (JObject) token;
-
-                if (quoteResponse.TryGetValue("result", out token) && token.Type == JTokenType.Array)
-                {
-                    var results = (JArray) token;
-
-                    for (int i = 0; i < results.Count; i++)
-                    {
-                        if (results[i].Type != JTokenType.Object)
-                            continue;
-
-                        var result = (JObject)results[i];
-
-                        var quote = result.ToObject<YahooStockQuote>();
-
-                        list.Add(quote);
-                    }
-
-                    //GenerateCSharpFromJson(results);
-                }
-            }
-
-            return list;
         }
 
         // Note: I think this is the data used for generating the mini graph for each stock symbol on their repsective TableView rows in the iOS Stocks app.
         public static async Task GetSparkAsync(IEnumerable<string> symbols, YahooTimeRange range, CancellationToken cancellationToken = default)
         {
             string requestUri = $"https://query1.finance.yahoo.com/v7/finance/spark?symbols={string.Join(",", symbols)}&range={TimeRanges[(int)range]}&interval=5m&indicators=close&includeTimestamps=false&includePrePost=false&corsDomain=finance.yahoo.com&.tsrc=finance";
-            string content;
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -136,37 +173,13 @@ namespace Stocks
 
                 using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
-                    content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                    var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                    var json = JObject.Parse(content).ToObject<YahooFinanceSparkResponse>();
 
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine($"HTTP response failure for '{requestUri}': {response.StatusCode}");
-                    }
-                }
-            }
+                    if (json.Data?.Error != null)
+                        throw new YahooFinanceException(response.StatusCode, json.Data.Error.Code, json.Data.Error.Description);
 
-            var json = JObject.Parse(content);
-            var list = new List<JObject>();
-
-            if (json.TryGetValue("spark", out var token) && token.Type == JTokenType.Object)
-            {
-                var quoteResponse = (JObject)token;
-
-                if (quoteResponse.TryGetValue("result", out token) && token.Type == JTokenType.Array)
-                {
-                    var results = (JArray)token;
-
-                    for (int i = 0; i < results.Count; i++)
-                    {
-                        if (results[i].Type != JTokenType.Object)
-                            continue;
-
-                        var result = (JObject)results[i];
-
-                        list.Add(result);
-                    }
-
-                    GenerateCSharpFromJson(results);
+                    var result = json.Data.Result;
                 }
             }
         }
@@ -180,7 +193,7 @@ namespace Stocks
             return "1d";
         }
 
-        static void GetChartParameters(YahooStockQuote quote, YahooTimeRange range, out DateTime period1, out DateTime period2)
+        static void GetChartParameters(YahooFinanceQuote quote, YahooTimeRange range, out DateTime period1, out DateTime period2)
         {
             DateTime firstTradeDate = UnixEpoch.AddMilliseconds(quote.FirstTradeDateMilliseconds);
             var tzOffset = quote.GmtOffset;
@@ -239,7 +252,7 @@ namespace Stocks
         }
 
         // Note: Pretty sure this is the data used to generate the multi-tab chart in the Details View.
-        public static async Task GetChartAsync(YahooStockQuote quote, YahooTimeRange range, CancellationToken cancellationToken = default)
+        public static async Task<YahooFinanceChart[]> GetChartAsync(YahooFinanceQuote quote, YahooTimeRange range, CancellationToken cancellationToken = default)
         {
             const string format = "https://query1.finance.yahoo.com/v8/finance/chart/{0}?symbol={1}&period1={2}&period2={3}&useYfid=true&interval={4}&includePrePost=true&events=div|split|earn&lang=en-US&region=US&crumb=ibG1c1O0H9S&corsDomain=finance.yahoo.com";
             var interval = GetChartInterval(range);
@@ -254,7 +267,6 @@ namespace Stocks
             GetChartParameters(quote, range, out var period1, out var period2);
 
             var requestUri = string.Format(format, quote.Symbol, quote.Symbol, SecondsSinceEpoch(period1), SecondsSinceEpoch(period2), interval);
-            string content;
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -263,37 +275,13 @@ namespace Stocks
 
                 using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
-                    content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                    var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                    var json = JObject.Parse(content).ToObject<YahooFinanceChartResponse>();
 
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine($"HTTP response failure for '{requestUri}': {response.StatusCode}");
-                    }
-                }
-            }
+                    if (json.Data?.Error != null)
+                        throw new YahooFinanceException(response.StatusCode, json.Data.Error.Code, json.Data.Error.Description);
 
-            var json = JObject.Parse(content);
-            var list = new List<JObject>();
-
-            if (json.TryGetValue("chart", out var token) && token.Type == JTokenType.Object)
-            {
-                var quoteResponse = (JObject)token;
-
-                if (quoteResponse.TryGetValue("result", out token) && token.Type == JTokenType.Array)
-                {
-                    var results = (JArray)token;
-
-                    for (int i = 0; i < results.Count; i++)
-                    {
-                        if (results[i].Type != JTokenType.Object)
-                            continue;
-
-                        var result = (JObject)results[i];
-
-                        list.Add(result);
-                    }
-
-                    //GenerateCSharpFromJson(results);
+                    return json.Data.Result;
                 }
             }
         }

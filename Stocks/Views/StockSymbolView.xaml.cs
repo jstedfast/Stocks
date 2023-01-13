@@ -2,9 +2,9 @@
 
 public partial class StockSymbolView : ViewCell
 {
-    YahooStockQuote quote;
+    YahooFinanceQuote quote;
 
-    public StockSymbolView(YahooStockQuote quote)
+    public StockSymbolView(YahooFinanceQuote quote)
     {
         InitializeComponent();
         Update(quote);
@@ -12,9 +12,9 @@ public partial class StockSymbolView : ViewCell
 
     public string Symbol { get { return quote.Symbol; } }
 
-    public YahooStockQuote Quote { get { return quote; } }
+    public YahooFinanceQuote Quote { get { return quote; } }
 
-    public void Update (YahooStockQuote quote)
+    public void Update (YahooFinanceQuote quote)
     {
         this.quote = quote;
 
