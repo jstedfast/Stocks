@@ -265,7 +265,7 @@ namespace Stocks
         }
 
         // Note: Pretty sure this is the data used to generate the multi-tab chart in the Details View.
-        public static async Task<YahooFinanceChart[]> GetChartAsync(YahooFinanceQuote quote, YahooTimeRange range, CancellationToken cancellationToken = default)
+        public static async Task<YahooFinanceChart> GetChartAsync(YahooFinanceQuote quote, YahooTimeRange range, CancellationToken cancellationToken = default)
         {
             const string format = "https://query1.finance.yahoo.com/v8/finance/chart/{0}?symbol={1}&period1={2}&period2={3}&useYfid=true&interval={4}&includePrePost=true&events=div|split|earn&lang=en-US&region=US&crumb=ibG1c1O0H9S&corsDomain=finance.yahoo.com";
             var interval = GetChartInterval(range);
@@ -297,7 +297,7 @@ namespace Stocks
                     if (json.Data?.Error != null)
                         throw new YahooFinanceException(response.StatusCode, json.Data.Error.Code, json.Data.Error.Description);
 
-                    return json.Data.Result;
+                    return json.Data.Result[0];
                 }
             }
         }
