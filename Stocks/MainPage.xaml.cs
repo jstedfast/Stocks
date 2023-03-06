@@ -69,7 +69,6 @@ public partial class MainPage : ContentPage
             symbols.Add(stockView.Symbol);
         }
 
-        var quotes = await YahooFinance.GetQuotesAsync(symbols);
         try
         {
             quotes = await YahooFinance.GetQuotesAsync(symbols).ConfigureAwait(false);
