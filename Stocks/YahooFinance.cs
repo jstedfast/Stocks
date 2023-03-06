@@ -139,14 +139,20 @@ namespace Stocks
             return GenerateCSharpFromJson(name, properties, counts, array.Count);
         }
 
+        static void SetDefaultRequestHeaders (HttpRequestMessage request)
+        {
+            request.Headers.Add("Accept-Language", "en-US");
+            request.Headers.Add("Connection", "keep-alive");
+            request.Headers.Add("User-Agent", "Mozilla/5.0");
+        }
+
         public static async Task<YahooFinanceQuote[]> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
         {
             var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={string.Join(",", symbols.Select(Uri.EscapeDataString))}";
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                request.Headers.Add("Accept-Language", "en-US");
-                request.Headers.Add("Connection", "keep-alive");
+                SetDefaultRequestHeaders(request);
 
                 using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
@@ -172,8 +178,7 @@ namespace Stocks
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                request.Headers.Add("Accept-Language", "en-US");
-                request.Headers.Add("Connection", "keep-alive");
+                SetDefaultRequestHeaders(request);
 
                 using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
@@ -278,8 +283,7 @@ namespace Stocks
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                request.Headers.Add("Accept-Language", "en-US");
-                request.Headers.Add("Connection", "keep-alive");
+                SetDefaultRequestHeaders(request);
 
                 using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
@@ -329,9 +333,8 @@ namespace Stocks
             {
                 using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
                 {
-                    request.Headers.Add("Accept-Language", "en-US");
+                    SetDefaultRequestHeaders(request);
                     request.Headers.Add("Referer", $"https://https://finance.yahoo.com/quote/{symbol}/history");
-                    request.Headers.Add("Connection", "keep-alive");
                     //request.Headers.Add ("Cookie", "A1=d=AQABBNC5m2ICEChbmhRVuTXYEHia15UotzkFEgEBAQELnWKlYgAAAAAA_eMAAA&S=AQAAAliad9I6hSWkcEeAj9baCAQ; A3=d=AQABBNC5m2ICEChbmhRVuTXYEHia15UotzkFEgEBAQELnWKlYgAAAAAA_eMAAA&S=AQAAAliad9I6hSWkcEeAj9baCAQ; A1S=d=AQABBNC5m2ICEChbmhRVuTXYEHia15UotzkFEgEBAQELnWKlYgAAAAAA_eMAAA&S=AQAAAliad9I6hSWkcEeAj9baCAQ&j=US; GUC=AQEBAQFinQtipUIgIQS_; cmp=t=1654442040&j=0&u=1---");
 
                     using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
