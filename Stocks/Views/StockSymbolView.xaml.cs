@@ -14,7 +14,7 @@ public partial class StockSymbolView : ViewCell
 
     public YahooFinanceQuote Quote { get { return quote; } }
 
-    public void Update (YahooFinanceQuote quote)
+    public void Update(YahooFinanceQuote quote)
     {
         this.quote = quote;
 

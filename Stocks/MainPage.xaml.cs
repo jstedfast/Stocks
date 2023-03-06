@@ -57,10 +57,11 @@ public partial class MainPage : ContentPage
         RefreshStocksAsync();
     }
 
-    async Task RefreshStocksAsync ()
+    async Task RefreshStocksAsync()
     {
         var dict = new Dictionary<string, StockSymbolView>();
         var symbols = new List<string>();
+        YahooFinanceQuote[] quotes;
 
         foreach (var stockView in StockTableView.Root[0].OfType<StockSymbolView>())
         {
@@ -69,6 +70,14 @@ public partial class MainPage : ContentPage
         }
 
         var quotes = await YahooFinance.GetQuotesAsync(symbols);
+        try
+        {
+            quotes = await YahooFinance.GetQuotesAsync(symbols).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
 
         foreach (var quote in quotes)
         {
