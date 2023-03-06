@@ -141,7 +141,7 @@ namespace Stocks
 
         public static async Task<YahooFinanceQuote[]> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
         {
-            var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={string.Join(",", symbols)}";
+            var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={string.Join(",", symbols.Select(Uri.EscapeDataString))}";
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -151,6 +151,10 @@ namespace Stocks
                 using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
                     var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!response.IsSuccessStatusCode)
+                        throw new YahooFinanceException(response.StatusCode, string.Empty, content);
+
                     var json = JObject.Parse(content).ToObject<YahooFinanceQuoteResponse>();
 
                     if (json.Data?.Error != null)
@@ -164,7 +168,7 @@ namespace Stocks
         // Note: I think this is the data used for generating the mini graph for each stock symbol on their repsective TableView rows in the iOS Stocks app.
         public static async Task GetSparkAsync(IEnumerable<string> symbols, YahooTimeRange range, CancellationToken cancellationToken = default)
         {
-            string requestUri = $"https://query1.finance.yahoo.com/v7/finance/spark?symbols={string.Join(",", symbols)}&range={TimeRanges[(int)range]}&interval=5m&indicators=close&includeTimestamps=false&includePrePost=false&corsDomain=finance.yahoo.com&.tsrc=finance";
+            string requestUri = $"https://query1.finance.yahoo.com/v7/finance/spark?symbols={string.Join(",", symbols.Select(Uri.EscapeDataString))}&range={TimeRanges[(int)range]}&interval=5m&indicators=close&includeTimestamps=false&includePrePost=false&corsDomain=finance.yahoo.com&.tsrc=finance";
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -174,6 +178,10 @@ namespace Stocks
                 using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
                     var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!response.IsSuccessStatusCode)
+                        throw new YahooFinanceException(response.StatusCode, string.Empty, content);
+
                     var json = JObject.Parse(content).ToObject<YahooFinanceSparkResponse>();
 
                     if (json.Data?.Error != null)
@@ -276,6 +284,10 @@ namespace Stocks
                 using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
                 {
                     var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!response.IsSuccessStatusCode)
+                        throw new YahooFinanceException(response.StatusCode, string.Empty, content);
+
                     var json = JObject.Parse(content).ToObject<YahooFinanceChartResponse>();
 
                     if (json.Data?.Error != null)
