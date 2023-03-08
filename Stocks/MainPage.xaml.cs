@@ -54,10 +54,10 @@ public partial class MainPage : ContentPage
     {
         base.OnAppearing();
 
-        RefreshStocksAsync();
+        RefreshStocks();
     }
 
-    async Task RefreshStocksAsync()
+    void RefreshStocks()
     {
         var dict = new Dictionary<string, StockSymbolView>();
         var symbols = new List<string>();
@@ -69,12 +69,23 @@ public partial class MainPage : ContentPage
             symbols.Add(stockView.Symbol);
         }
 
+        //try
+        //{
+        //    await YahooFinanceClient.Default.GetSparkAsync(symbols, YahooTimeRange.OneDay);
+        //}
+        //catch (Exception ex)
+        //{
+        //    Console.WriteLine(ex);
+        //    //throw;
+        //}
+
         try
         {
-            quotes = await YahooFinance.GetQuotesAsync(symbols).ConfigureAwait(false);
+            quotes = YahooFinanceClient.Default.GetQuotesAsync(symbols).GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {
+            Console.WriteLine(ex);
             throw;
         }
 
@@ -83,8 +94,27 @@ public partial class MainPage : ContentPage
             if (!dict.TryGetValue(quote.Symbol, out var view))
                 continue;
 
-            // update view
-            view.Update(quote);
+            //if (false && quote.Symbol == "^DJI")
+            //{
+            //    try
+            //    {
+            //        var chartData = await YahooFinanceClient.Default.GetChartAsync(quote, YahooTimeRange.OneDay);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Console.WriteLine(ex);
+            //    }
+            //}
+
+            try
+            {
+                // update view
+                view.Update(quote);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 

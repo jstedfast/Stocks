@@ -5,13 +5,15 @@ using Newtonsoft.Json.Linq;
 
 namespace Stocks
 {
-    public static class YahooFinance
+    public class YahooFinanceClient : IDisposable
     {
         static readonly string[] TimeRanges = new string[] { "1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max" };
         static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-        static HttpClient client;
+        public static readonly YahooFinanceClient Default = new YahooFinanceClient();
+        
+        HttpClient client;
 
-        static YahooFinance()
+        public YahooFinanceClient()
         {
             var handler = new HttpClientHandler();
             handler.CookieContainer = new CookieContainer();
@@ -146,7 +148,7 @@ namespace Stocks
             request.Headers.Add("User-Agent", "Mozilla/5.0");
         }
 
-        public static async Task<YahooFinanceQuote[]> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
+        public async Task<YahooFinanceQuote[]> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
         {
             var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={string.Join(",", symbols.Select(Uri.EscapeDataString))}";
 
@@ -172,7 +174,7 @@ namespace Stocks
         }
 
         // Note: I think this is the data used for generating the mini graph for each stock symbol on their repsective TableView rows in the iOS Stocks app.
-        public static async Task GetSparkAsync(IEnumerable<string> symbols, YahooTimeRange range, CancellationToken cancellationToken = default)
+        public async Task GetSparkAsync(IEnumerable<string> symbols, YahooTimeRange range, CancellationToken cancellationToken = default)
         {
             string requestUri = $"https://query1.finance.yahoo.com/v7/finance/spark?symbols={string.Join(",", symbols.Select(Uri.EscapeDataString))}&range={TimeRanges[(int)range]}&interval=5m&indicators=close&includeTimestamps=false&includePrePost=false&corsDomain=finance.yahoo.com&.tsrc=finance";
 
@@ -265,7 +267,7 @@ namespace Stocks
         }
 
         // Note: Pretty sure this is the data used to generate the multi-tab chart in the Details View.
-        public static async Task<YahooFinanceChart> GetChartAsync(YahooFinanceQuote quote, YahooTimeRange range, CancellationToken cancellationToken = default)
+        public async Task<YahooFinanceChart> GetChartAsync(YahooFinanceQuote quote, YahooTimeRange range, CancellationToken cancellationToken = default)
         {
             const string format = "https://query1.finance.yahoo.com/v8/finance/chart/{0}?symbol={1}&period1={2}&period2={3}&useYfid=true&interval={4}&includePrePost=true&events=div|split|earn&lang=en-US&region=US&crumb=ibG1c1O0H9S&corsDomain=finance.yahoo.com";
             var interval = GetChartInterval(range);
@@ -307,7 +309,7 @@ namespace Stocks
             return (long)(dt - UnixEpoch).TotalSeconds;
         }
 
-        public static async Task<YahooStockData> GetHistoryAsync(string symbol, DateTime start, DateTime end, CancellationToken cancellationToken = default)
+        public async Task<YahooStockData> GetHistoryAsync(string symbol, DateTime start, DateTime end, CancellationToken cancellationToken = default)
         {
             const string format = "https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval=1d&events=history&includeAdjustedClose=true";
             var requestUri = string.Format(format, symbol, SecondsSinceEpoch(start), SecondsSinceEpoch(end));
@@ -365,6 +367,16 @@ namespace Stocks
                     }
                 }
             } while (true);
+        }
+
+        public void Dispose()
+        {
+            if (client != null) {
+                client.Dispose();
+                client = null;
+            }
+
+            GC.SuppressFinalize(this);
         }
     }
 }
