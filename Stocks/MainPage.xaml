@@ -4,11 +4,12 @@
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
              x:Class="Stocks.MainPage">
 
-    <VerticalStackLayout Spacing="6" VerticalOptions="Start">
+    <Grid RowSpacing="6" ColumnSpacing="6" RowDefinitions="Auto,*">
 
         <Label
             Text="{Binding Source={x:Static system:DateTime.Today}, StringFormat='{0:MMMM d}'}"
             SemanticProperties.HeadingLevel="Level1"
+            Grid.Row="0" Grid.Column="0"
             Padding="8,0"
             FontSize="Title"
             FontAttributes="Bold"
@@ -17,14 +18,14 @@
             HorizontalOptions="Start"
             VerticalOptions="Start" />
 
-        <ScrollView Orientation="Vertical" VerticalOptions="FillAndExpand">
-            <TableView x:Name="StockTableView" Intent="Data" VerticalOptions="FillAndExpand">
+        <ScrollView Orientation="Vertical" VerticalOptions="FillAndExpand" Grid.Row="1" Grid.Column="0">
+            <TableView x:Name="StockTableView" Intent="Data" VerticalOptions="FillAndExpand" HasUnevenRows="True">
                 <TableRoot>
                     <TableSection />
                 </TableRoot>
             </TableView>
         </ScrollView>
 
-    </VerticalStackLayout>
+    </Grid>
 
 </ContentPage>
