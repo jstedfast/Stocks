@@ -94,18 +94,6 @@ public partial class MainPage : ContentPage
             if (!dict.TryGetValue(quote.Symbol, out var view))
                 continue;
 
-            //if (false && quote.Symbol == "^DJI")
-            //{
-            //    try
-            //    {
-            //        var chartData = await YahooFinanceClient.Default.GetChartAsync(quote, YahooTimeRange.OneDay);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Console.WriteLine(ex);
-            //    }
-            //}
-
             try
             {
                 // update view
@@ -114,6 +102,16 @@ public partial class MainPage : ContentPage
             catch (Exception ex)
             {
                 throw;
+            }
+
+            try
+            {
+                var chartData = YahooFinanceClient.Default.GetChartAsync(quote, YahooTimeRange.OneDay).GetAwaiter().GetResult();
+                view.Update(chartData);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
         }
     }

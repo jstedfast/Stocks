@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ViewCell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Stocks.Views.StockSymbolView">
-    <Grid RowSpacing="6" ColumnSpacing="6" RowDefinitions="*,*" ColumnDefinitions="*,*" Padding="8,0">
+          xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+          x:Class="Stocks.Views.StockSymbolView">
+    <Grid RowSpacing="6" ColumnSpacing="6" RowDefinitions="*,*" ColumnDefinitions="*,100,100" Padding="8,0">
         <Label x:Name="NameLabel" Grid.Row="0" Grid.Column="0"
                 Text="Dow Jones"
-                FontSize="Title"
+                FontSize="Medium"
                 FontAttributes="Bold"
                 HorizontalOptions="Start" />
 
@@ -13,19 +13,21 @@
                 Text="Dow Jones Industrial Average"
                 LineBreakMode="TailTruncation"
                 TextColor="Gray"
-                FontSize="Subtitle"
+                FontSize="Small"
                 HorizontalOptions="Start" />
 
-        <Label x:Name="MarketPriceLabel" Grid.Row="0"  Grid.Column="1"
+        <Image x:Name="MarketPriceChartImage" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" WidthRequest="100" />
+
+        <Label x:Name="MarketPriceLabel" Grid.Row="0" Grid.Column="2"
                 Text="33,800.47"
-                FontSize="Title"
+                FontSize="Medium"
                 FontAttributes="Bold"
                 HorizontalOptions="End" />
 
-        <Border x:Name="MarketChangeLabelBorder" Grid.Row="1" Grid.Column="1"
+        <Border x:Name="MarketChangeLabelBorder" Grid.Row="1" Grid.Column="2"
                 BackgroundColor="Green"
                 HorizontalOptions="End"
-                StrokeThickness="1">
+                StrokeThickness="0">
 
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="5" />
@@ -33,13 +35,14 @@
 
             <VerticalStackLayout>
                 <Label x:Name="MarketChangeLabel"
-                        Text="+15.16"
-                        Margin="3"
-                        FontSize="Subtitle"
-                        MinimumWidthRequest="76"
-                        HorizontalTextAlignment="End" 
-                        HorizontalOptions="FillAndExpand"
-                        VerticalOptions="FillAndExpand" />
+                       Text="+15.16"
+                       Margin="5"
+                       FontSize="Small"
+                       FontAttributes="Bold"
+                       MinimumWidthRequest="72"
+                       HorizontalTextAlignment="End"
+                       HorizontalOptions="FillAndExpand"
+                       VerticalOptions="FillAndExpand" />
             </VerticalStackLayout>
         </Border>
     </Grid>
