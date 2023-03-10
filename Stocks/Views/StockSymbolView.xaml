@@ -4,25 +4,25 @@
           x:Class="Stocks.Views.StockSymbolView">
     <Grid RowSpacing="6" ColumnSpacing="6" RowDefinitions="*,*" ColumnDefinitions="*,100,100" Padding="8,0">
         <Label x:Name="NameLabel" Grid.Row="0" Grid.Column="0"
-                Text="Dow Jones"
-                FontSize="Medium"
-                FontAttributes="Bold"
-                HorizontalOptions="Start" />
+               Text="Dow Jones"
+               FontSize="Medium"
+               FontAttributes="Bold"
+               HorizontalOptions="Start" />
 
         <Label x:Name="DescriptionLabel" Grid.Row="1" Grid.Column="0"
-                Text="Dow Jones Industrial Average"
-                LineBreakMode="TailTruncation"
-                TextColor="Gray"
-                FontSize="Small"
-                HorizontalOptions="Start" />
+               Text="Dow Jones Industrial Average"
+               LineBreakMode="TailTruncation"
+               TextColor="Gray"
+               FontSize="Small"
+               HorizontalOptions="Start" />
 
         <Image x:Name="MarketPriceChartImage" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" WidthRequest="100" />
 
         <Label x:Name="MarketPriceLabel" Grid.Row="0" Grid.Column="2"
-                Text="33,800.47"
-                FontSize="Medium"
-                FontAttributes="Bold"
-                HorizontalOptions="End" />
+               Text="33,800.47"
+               FontSize="Medium"
+               FontAttributes="Bold"
+               HorizontalOptions="End" />
 
         <Border x:Name="MarketChangeLabelBorder" Grid.Row="1" Grid.Column="2"
                 BackgroundColor="Green"
