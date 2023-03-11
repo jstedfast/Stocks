@@ -80,6 +80,7 @@ public partial class StockSymbolView : ViewCell
 
         var cartesianChart = new SKCartesianChart
         {
+            Background = SKColors.Transparent,
             Width = (int) MarketPriceChartImage.WidthRequest,
             Height = (int) MarketPriceChartImage.WidthRequest / 2,
             DrawMargin = new Margin(0),
