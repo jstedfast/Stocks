@@ -2,7 +2,7 @@
 <ViewCell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
           xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
           x:Class="Stocks.Views.StockSymbolView">
-    <Grid RowSpacing="6" ColumnSpacing="6" RowDefinitions="*,*" ColumnDefinitions="*,100,100" Padding="8,0">
+    <Grid RowSpacing="4" ColumnSpacing="2" RowDefinitions="*,*" ColumnDefinitions="*,100,100" Padding="8,4">
         <Label x:Name="NameLabel" Grid.Row="0" Grid.Column="0"
                Text="Dow Jones"
                FontSize="Medium"
@@ -38,8 +38,7 @@
                        Text="+15.16"
                        Margin="5"
                        FontSize="Small"
-                       FontAttributes="Bold"
-                       MinimumWidthRequest="72"
+                       MinimumWidthRequest="54"
                        HorizontalTextAlignment="End"
                        HorizontalOptions="FillAndExpand"
                        VerticalOptions="FillAndExpand" />
