@@ -37,12 +37,12 @@ public partial class StockSymbolView : ViewCell
 
         if (quote.RegularMarketChange >= 0.0)
         {
-            MarketChangeLabelBorder.BackgroundColor = Color.Parse("Green");
+            MarketChangeLabelBorder.BackgroundColor = Color.Parse("#65C466");
             MarketChangeLabel.Text = string.Format("+{0:0.00}", quote.RegularMarketChange);
         }
         else
         {
-            MarketChangeLabelBorder.BackgroundColor = Color.Parse("Red");
+            MarketChangeLabelBorder.BackgroundColor = Color.Parse("#EA4F3D");
             MarketChangeLabel.Text = string.Format("{0:0.00}", quote.RegularMarketChange);
         }
     }
