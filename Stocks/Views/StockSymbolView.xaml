@@ -5,7 +5,7 @@
     <Grid RowSpacing="4" ColumnSpacing="2" RowDefinitions="*,*" ColumnDefinitions="*,100,100" Padding="8,4">
         <Label x:Name="NameLabel" Grid.Row="0" Grid.Column="0"
                Text="Dow Jones"
-               FontSize="Medium"
+               FontSize="18"
                FontAttributes="Bold"
                HorizontalOptions="Start" />
 
@@ -13,14 +13,14 @@
                Text="Dow Jones Industrial Average"
                LineBreakMode="TailTruncation"
                TextColor="Gray"
-               FontSize="Small"
+               FontSize="13"
                HorizontalOptions="Start" />
 
         <Image x:Name="MarketPriceChartImage" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" WidthRequest="100" />
 
         <Label x:Name="MarketPriceLabel" Grid.Row="0" Grid.Column="2"
                Text="33,800.47"
-               FontSize="Medium"
+               FontSize="18"
                FontAttributes="Bold"
                HorizontalOptions="End" />
 
@@ -37,8 +37,9 @@
                 <Label x:Name="MarketChangeLabel"
                        TextColor="White"
                        Text="+15.16"
-                       Margin="5"
-                       FontSize="Small"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       Margin="5, 3, 5, 3"
                        MinimumWidthRequest="54"
                        HorizontalTextAlignment="End"
                        HorizontalOptions="FillAndExpand"
