@@ -35,6 +35,7 @@
 
             <VerticalStackLayout>
                 <Label x:Name="MarketChangeLabel"
+                       TextColor="White"
                        Text="+15.16"
                        Margin="5"
                        FontSize="Small"
