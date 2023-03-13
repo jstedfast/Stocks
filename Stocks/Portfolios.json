@@ -1,0 +1,138 @@
+﻿{
+  "portfolios": [
+    {
+      "name": "My Symbols",
+      "stocks": [
+        {
+          "symbol": "^DJI",
+          "longName": "Dow Jones Industrial Average",
+          "shortName": "Dow Jones Industrial Average",
+          "currency": "USD",
+          "exchange": "DJI",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "^IXIC",
+          "longName": "NASDAQ Composite",
+          "shortName": "NASDAQ Composite",
+          "currency": "USD",
+          "exchange": "NIM",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "^GSPC",
+          "longName": "S&P 500",
+          "shortName": "S&P 500",
+          "currency": "USD",
+          "exchange": "SNP",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "MSFT",
+          "displayName": "Microsoft",
+          "longName": "Microsoft Corporation",
+          "shortName": "Microsoft Corporation",
+          "currency": "USD",
+          "exchange": "NMS",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "AAPL",
+          "displayName": "Apple",
+          "longName": "Apple Inc.",
+          "shortName": "Apple Inc.",
+          "currency": "USD",
+          "exchange": "NMS",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "GOOG",
+          "displayName": "Alphabet",
+          "longName": "Alphabet Inc.",
+          "shortName": "Alphabet Inc.",
+          "currency": "USD",
+          "exchange": "NMS",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "AMZN",
+          "displayName": "Amazon.com",
+          "longName": "Amazon.com, Inc.",
+          "shortName": "Amazon.com, Inc.",
+          "currency": "USD",
+          "exchange": "NMS",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "META",
+          "displayName": "Meta Platforms",
+          "longName": "Meta Platforms, Inc.",
+          "shortName": "Meta Platforms, Inc.",
+          "currency": "USD",
+          "exchange": "NMS",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "TSLA",
+          "displayName": "Tesla",
+          "longName": "Tesla, Inc.",
+          "shortName": "Tesla, Inc.",
+          "currency": "USD",
+          "exchange": "NMS",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "NFLX",
+          "displayName": "Netflix",
+          "longName": "Netflix, Inc.",
+          "shortName": "Netflix, Inc.",
+          "currency": "USD",
+          "exchange": "NMS",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "SBUX",
+          "displayName": "Starbucks",
+          "longName": "Starbucks Corporation",
+          "shortName": "Starbucks Corporation",
+          "currency": "USD",
+          "exchange": "NMS",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        },
+        {
+          "symbol": "NKE",
+          "displayName": "NIKE",
+          "longName": "NIKE, Inc.",
+          "shortName": "Nike, Inc.",
+          "currency": "USD",
+          "exchange": "NYQ",
+          "exchangeTimezoneName": "America/New_York",
+          "exchangeTimezoneShortName": "EDT",
+          "gmtOffSetMilliseconds": -14400000
+        }
+      ]
+    }
+  ]
+}

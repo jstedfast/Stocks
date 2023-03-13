@@ -148,7 +148,7 @@ namespace Stocks
             request.Headers.Add("User-Agent", "Mozilla/5.0");
         }
 
-        public async Task<YahooFinanceQuote[]> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
+        public async Task<Dictionary<string, YahooFinanceQuote>> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
         {
             var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={string.Join(",", symbols.Select(Uri.EscapeDataString))}";
 
@@ -168,13 +168,18 @@ namespace Stocks
                     if (json.Data?.Error != null)
                         throw new YahooFinanceException(response.StatusCode, json.Data.Error.Code, json.Data.Error.Description);
 
-                    return json.Data.Result;
+                    var quotes = new Dictionary<string, YahooFinanceQuote>();
+
+                    foreach (var result in json.Data.Result)
+                        quotes.Add(result.Symbol, result);
+
+                    return quotes;
                 }
             }
         }
 
         // Note: I think this is the data used for generating the mini graph for each stock symbol on their repsective TableView rows in the iOS Stocks app.
-        public async Task GetSparkAsync(IEnumerable<string> symbols, YahooTimeRange range, CancellationToken cancellationToken = default)
+        public async Task<Dictionary<string, YahooFinanceSpark>> GetSparksAsync(IEnumerable<string> symbols, YahooTimeRange range, CancellationToken cancellationToken = default)
         {
             string requestUri = $"https://query1.finance.yahoo.com/v7/finance/spark?symbols={string.Join(",", symbols.Select(Uri.EscapeDataString))}&range={TimeRanges[(int)range]}&interval=5m&indicators=close&includeTimestamps=false&includePrePost=false&corsDomain=finance.yahoo.com&.tsrc=finance";
 
@@ -194,7 +199,12 @@ namespace Stocks
                     if (json.Data?.Error != null)
                         throw new YahooFinanceException(response.StatusCode, json.Data.Error.Code, json.Data.Error.Description);
 
-                    var result = json.Data.Result;
+                    var sparks = new Dictionary<string, YahooFinanceSpark>();
+
+                    foreach (var result in json.Data.Result)
+                        sparks.Add(result.Symbol, result.Response[0]);
+
+                    return sparks;
                 }
             }
         }

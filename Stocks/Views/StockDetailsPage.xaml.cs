@@ -9,47 +9,27 @@ public partial class StockDetailsPage : ContentPage
     const long OneHundredMillion = 100000000;
     const long TenMillion = 10000000;
     const long OneMillion = 1000000;
-    readonly YahooFinanceQuote quote;
+    readonly Stock stock;
 
-    public StockDetailsPage(YahooFinanceQuote quote)
+    public StockDetailsPage(Stock stock)
     {
         InitializeComponent();
-        this.quote = quote;
+        this.stock = stock;
+    }
 
-        Title = quote.Name;
+    protected override void OnAppearing()
+    {
+        UpdateQuote(stock.Quote);
+        stock.StockQuoteChanged += OnStockQuoteChanged;
 
-        SubtitleLabel.Text = quote.Description;
+        base.OnAppearing();
+    }
 
-        MarketPriceLabel.Text = Format(quote.RegularMarketPrice);
-        if (quote.RegularMarketPrice > 0)
-        {
-            MarketChangeLabel.Text = string.Format("+{0:0.00}", quote.RegularMarketChange);
-            MarketChangeLabel.TextColor = Color.Parse("Green");
-        }
-        else
-        {
-            MarketChangeLabel.Text = string.Format("{0:0.00}", quote.RegularMarketChange);
-            MarketChangeLabel.TextColor = Color.Parse("Red");
-        }
+    protected override void OnDisappearing()
+    {
+        stock.StockQuoteChanged -= OnStockQuoteChanged;
 
-        ExchangeLabel.Text = quote.ExchangeDisplayName;
-        CurrencyLabel.Text = quote.Currency;
-
-        OpenLabel.Text = Format(quote.RegularMarketOpen);
-        HighLabel.Text = Format(quote.RegularMarketDayHigh);
-        LowLabel.Text = Format(quote.RegularMarketDayLow);
-
-        VolumeLabel.Text = Format(quote.RegularMarketVolume);
-        PELabel.Text = Format(quote.TrailingPE);
-        MarketCapLabel.Text = Format(quote.MarketCap);
-
-        FiftyTwoWeekHighLabel.Text = Format(quote.FiftyTwoWeekHigh);
-        FiftyTwoWeekLowLabel.Text = Format(quote.FiftyTwoWeekLow);
-        AverageVolumeLabel.Text = Format(quote.AverageDailyVolume3Month);
-
-        YieldLabel.Text = "-";
-        BetaLabel.Text = "-";
-        EPSLabel.Text = Format(quote.EpsTrailingTwelveMonths);
+        base.OnDisappearing();
     }
 
     static string Format(long? value)
@@ -89,5 +69,48 @@ public partial class StockDetailsPage : ContentPage
             return "-";
 
         return value.Value.ToString("0,0.00");
+    }
+
+    void UpdateQuote(YahooFinanceQuote quote)
+    {
+        Title = quote.Name;
+
+        SubtitleLabel.Text = quote.Description;
+
+        MarketPriceLabel.Text = Format(quote.RegularMarketPrice);
+        if (quote.RegularMarketPrice > 0)
+        {
+            MarketChangeLabel.Text = string.Format("+{0:0.00}", quote.RegularMarketChange);
+            MarketChangeLabel.TextColor = Color.Parse("Green");
+        }
+        else
+        {
+            MarketChangeLabel.Text = string.Format("{0:0.00}", quote.RegularMarketChange);
+            MarketChangeLabel.TextColor = Color.Parse("Red");
+        }
+
+        ExchangeLabel.Text = quote.ExchangeDisplayName;
+        CurrencyLabel.Text = quote.Currency;
+
+        OpenLabel.Text = Format(quote.RegularMarketOpen);
+        HighLabel.Text = Format(quote.RegularMarketDayHigh);
+        LowLabel.Text = Format(quote.RegularMarketDayLow);
+
+        VolumeLabel.Text = Format(quote.RegularMarketVolume);
+        PELabel.Text = Format(quote.TrailingPE);
+        MarketCapLabel.Text = Format(quote.MarketCap);
+
+        FiftyTwoWeekHighLabel.Text = Format(quote.FiftyTwoWeekHigh);
+        FiftyTwoWeekLowLabel.Text = Format(quote.FiftyTwoWeekLow);
+        AverageVolumeLabel.Text = Format(quote.AverageDailyVolume3Month);
+
+        YieldLabel.Text = "-";
+        BetaLabel.Text = "-";
+        EPSLabel.Text = Format(quote.EpsTrailingTwelveMonths);
+    }
+
+    void OnStockQuoteChanged(object sender, StockQuoteChangedEventArgs e)
+    {
+        UpdateQuote(e.Quote);
     }
 }

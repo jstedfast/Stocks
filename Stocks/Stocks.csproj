@@ -49,11 +49,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Portfolio.json" />
+	  <None Remove="Portfolios.json" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="Portfolio.json" />
+	  <EmbeddedResource Include="Portfolios.json" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -69,5 +69,4 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
-
 </Project>
