@@ -35,7 +35,16 @@ public partial class StockSymbolView : ViewCell
             UpdateQuote(stock.Quote);
 
         if (stock.Spark != null)
-            UpdateSpark(stock.Spark);
+        {
+            try
+            {
+                UpdateSpark(stock.Spark);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
 
         base.OnAppearing();
     }
@@ -169,6 +178,13 @@ public partial class StockSymbolView : ViewCell
 
     void OnSparkChanged(object sender, StockSparkChangedEventArgs e)
     {
-        UpdateSpark(e.Spark);
+        try
+        {
+            UpdateSpark(e.Spark);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
     }
 }
