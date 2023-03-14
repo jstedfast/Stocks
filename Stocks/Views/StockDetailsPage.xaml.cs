@@ -28,7 +28,7 @@ public partial class StockDetailsPage : ContentPage
         InitializeComponent();
         this.stock = stock;
 
-        /*StockPriceChart.Series = new ISeries[]
+        StockPriceChart.Series = new ISeries[]
         {
             new CandlesticksSeries<FinancialPoint>
             {
@@ -59,7 +59,7 @@ public partial class StockDetailsPage : ContentPage
             },
         };
         StockPriceChart.XAxes = new[] { new Axis { Position = AxisPosition.Start, ShowSeparatorLines = true, IsVisible = true } };
-        StockPriceChart.YAxes = new[] { new Axis { Position = AxisPosition.End, ShowSeparatorLines = true, IsVisible = true } };*/
+        StockPriceChart.YAxes = new[] { new Axis { Position = AxisPosition.End, ShowSeparatorLines = true, IsVisible = true } };
     }
 
     protected override void OnAppearing()
