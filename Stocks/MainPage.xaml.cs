@@ -9,10 +9,9 @@ public partial class MainPage : ContentPage
         var theme = App.Current.PlatformAppTheme;
         App.Current.UserAppTheme = AppTheme.Dark;
 
-        MauiProgram.YahooFinanceThread = new YahooFinanceThread(SynchronizationContext.Current);
-
         InitializeComponent();
 
+        MauiProgram.YahooFinanceThread = new YahooFinanceThread(SynchronizationContext.Current);
         var portfolio = MauiProgram.Portfolios.FirstOrDefault();
 
         if (portfolio != null)

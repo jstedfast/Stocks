@@ -6,7 +6,6 @@ public static class MauiProgram
 {
     public static List<StockPortfolio> Portfolios { get; private set; }
     public static YahooFinanceThread YahooFinanceThread { get; set; }
-    public static SynchronizationContext GuiContext;
 
 	public static MauiApp CreateMauiApp()
 	{
