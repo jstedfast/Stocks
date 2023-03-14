@@ -4,10 +4,9 @@
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
              x:Class="Stocks.Views.StockDetailsPage"
              Title="StockDetailsPage">
-    <VerticalStackLayout Spacing="6" VerticalOptions="Start">
+    <VerticalStackLayout Spacing="6" VerticalOptions="Start" Padding="8,0">
         <Label x:Name="SubtitleLabel"
             SemanticProperties.HeadingLevel="Level1"
-            Padding="8,0"
             FontSize="Title"
             FontAttributes="Bold"
             TextColor="Gray"
@@ -17,23 +16,87 @@
 
         <BoxView Color="Gray" Margin="8" HeightRequest="1" />
 
-        <HorizontalStackLayout Padding="8,0" Spacing="8">
+        <HorizontalStackLayout Spacing="8">
             <Label x:Name="MarketPriceLabel" FontAttributes="Bold" FontSize="Medium" HorizontalTextAlignment="Start" />
             <Label x:Name="MarketChangeLabel" FontAttributes="Bold" FontSize="Medium" HorizontalTextAlignment="Start" />
         </HorizontalStackLayout>
 
-        <HorizontalStackLayout Padding="8,0" Spacing="8">
+        <HorizontalStackLayout Spacing="8">
             <Label x:Name="ExchangeLabel" TextColor="Gray" FontSize="Micro" HorizontalTextAlignment="Start" />
             <Label Text="⋅" TextColor="Gray" FontSize="Micro" HorizontalTextAlignment="Center" />
             <Label x:Name="CurrencyLabel" TextColor="Gray" FontSize="Micro" HorizontalTextAlignment="Start" />
         </HorizontalStackLayout>
 
         <!-- Add a chart here -->
-        <lvc:CartesianChart />
+        <Grid ColumnDefinitions="Auto" RowDefinitions="Auto,Auto" RowSpacing="0" ColumnSpacing="0">
+            <ScrollView Grid.Row="0" Grid.Column="0" Orientation="Horizontal" HorizontalScrollBarVisibility="Default" VerticalScrollBarVisibility="Never">
+                <HorizontalStackLayout RadioButtonGroup.GroupName="ChartTimeRanges" HorizontalOptions="Start" Spacing="0">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <RadioButton Content="{Binding .}">
+                                <RadioButton.ControlTemplate>
+                                    <ControlTemplate>
+                                        <VerticalStackLayout Spacing="0">
+                                            <VisualStateManager.VisualStateGroups>
+                                                <VisualStateGroupList>
+                                                    <VisualStateGroup x:Name="CheckedStates">
+                                                        <VisualState x:Name="Checked">
+                                                            <VisualState.Setters>
+                                                                <Setter TargetName="TimeRangeLabelBorder" Property="Border.BackgroundColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}" />
+                                                                <Setter TargetName="TimeRangeLabel" Property="Label.FontAttributes" Value="Bold"/>
+                                                            </VisualState.Setters>
+                                                        </VisualState>
 
-        <ScrollView Orientation="Horizontal">
-            <HorizontalStackLayout Padding="8,0">
-                <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" ColumnSpacing="8">
+                                                        <VisualState x:Name="Unchecked">
+                                                            <VisualState.Setters>
+                                                                <Setter TargetName="TimeRangeLabelBorder" Property="Border.BackgroundColor" Value="Transparent" />
+                                                                <Setter TargetName="TimeRangeLabel" Property="Label.FontAttributes" Value="None" />
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+                                                    </VisualStateGroup>
+                                                </VisualStateGroupList>
+                                            </VisualStateManager.VisualStateGroups>
+                                            <Border x:Name="TimeRangeLabelBorder" StrokeThickness="0">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="8" />
+                                                </Border.StrokeShape>
+
+                                                <VerticalStackLayout Spacing="0">
+                                                    <Label x:Name="TimeRangeLabel" Text="{TemplateBinding Content}" MaxLines="1"
+                                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center"
+                                                           Margin="5,5,5,5" />
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </VerticalStackLayout>
+                                    </ControlTemplate>
+                                </RadioButton.ControlTemplate>
+                            </RadioButton>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                    <BindableLayout.ItemsSource>
+                        <x:Array Type="{x:Type x:String}">
+                            <x:String>1D</x:String>
+                            <x:String>1W</x:String>
+                            <x:String>1M</x:String>
+                            <x:String>3M</x:String>
+                            <x:String>6M</x:String>
+                            <x:String>YTD</x:String>
+                            <x:String>1Y</x:String>
+                            <x:String>2Y</x:String>
+                            <x:String>5Y</x:String>
+                            <x:String>10Y</x:String>
+                            <x:String>ALL</x:String>
+                        </x:Array>
+                    </BindableLayout.ItemsSource>
+                </HorizontalStackLayout>
+            </ScrollView>
+
+            <lvc:CartesianChart x:Name="StockPriceChart" Grid.Row="1" Grid.Column="0" Background="Transparent" />
+        </Grid>
+
+        <ScrollView Orientation="Horizontal" HorizontalOptions="FillAndExpand">
+            <HorizontalStackLayout>
+                <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8">
                     <Label Grid.Row="0" Grid.Column="0" Text="Open" TextColor="Gray" HorizontalTextAlignment="Start" />
                     <Label Grid.Row="0" Grid.Column="1" x:Name="OpenLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand"/>
                     <Label Grid.Row="1" Grid.Column="0" Text="High" TextColor="Gray" HorizontalTextAlignment="Start" />
@@ -45,7 +108,7 @@
                 <BoxView Color="Gray" Margin="8" WidthRequest="1" />
 
                 <VerticalStackLayout>
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" ColumnSpacing="8">
+                    <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" Text="Vol" TextColor="Gray" HorizontalTextAlignment="Start" />
                         <Label Grid.Row="0" Grid.Column="1" x:Name="VolumeLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
                         <Label Grid.Row="1" Grid.Column="0" Text="P/E" TextColor="Gray" HorizontalTextAlignment="Start" />
@@ -58,7 +121,7 @@
                 <BoxView Color="Gray" Margin="8" WidthRequest="1" />
 
                 <VerticalStackLayout>
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" ColumnSpacing="8">
+                    <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" Text="52W H" TextColor="Gray" HorizontalTextAlignment="Start" />
                         <Label Grid.Row="0" Grid.Column="1" x:Name="FiftyTwoWeekHighLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
                         <Label Grid.Row="1" Grid.Column="0" Text="52W L" TextColor="Gray" HorizontalTextAlignment="Start" />
@@ -71,7 +134,7 @@
                 <BoxView Color="Gray" Margin="8" WidthRequest="1" />
 
                 <VerticalStackLayout>
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*" ColumnSpacing="8">
+                    <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8">
                         <Label Grid.Row="0" Grid.Column="0" Text="Yield" TextColor="Gray" HorizontalTextAlignment="Start" />
                         <Label Grid.Row="0" Grid.Column="1" x:Name="YieldLabel" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" />
                         <Label Grid.Row="1" Grid.Column="0" Text="Beta" TextColor="Gray" HorizontalTextAlignment="Start" />
