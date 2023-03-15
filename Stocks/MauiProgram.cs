@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using SkiaSharp.Views.Maui.Controls.Hosting;
 
 namespace Stocks;
 
@@ -7,18 +8,19 @@ public static class MauiProgram
     public static List<StockPortfolio> Portfolios { get; private set; }
     public static YahooFinanceThread YahooFinanceThread { get; set; }
 
-	public static MauiApp CreateMauiApp()
-	{
+    public static MauiApp CreateMauiApp()
+    {
         Portfolios = new List<StockPortfolio>();
 
         var builder = MauiApp.CreateBuilder();
-		builder
-			.UseMauiApp<App>()
-			.ConfigureFonts(fonts =>
-			{
-				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-			});
+        builder
+            .UseMauiApp<App>()
+            .UseSkiaSharp()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
 
         var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var dir = Path.Combine(appDataDir, "com.microsoft.maui-samples.stocks");
@@ -56,5 +58,5 @@ public static class MauiProgram
         }
 
         return builder.Build();
-	}
+    }
 }
