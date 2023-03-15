@@ -33,10 +33,10 @@
                 <HorizontalStackLayout RadioButtonGroup.GroupName="ChartTimeRanges" HorizontalOptions="Start" Spacing="0">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate>
-                            <RadioButton Content="{Binding .}">
+                            <RadioButton Content="{Binding .}" HorizontalOptions="Start">
                                 <RadioButton.ControlTemplate>
                                     <ControlTemplate>
-                                        <VerticalStackLayout Spacing="0">
+                                        <VerticalStackLayout Spacing="0" HorizontalOptions="Start">
                                             <VisualStateManager.VisualStateGroups>
                                                 <VisualStateGroupList>
                                                     <VisualStateGroup x:Name="CheckedStates">
@@ -56,14 +56,15 @@
                                                     </VisualStateGroup>
                                                 </VisualStateGroupList>
                                             </VisualStateManager.VisualStateGroups>
-                                            <Border x:Name="TimeRangeLabelBorder" StrokeThickness="0">
+                                            <Border x:Name="TimeRangeLabelBorder" StrokeThickness="0" HorizontalOptions="Start">
                                                 <Border.StrokeShape>
                                                     <RoundRectangle CornerRadius="8" />
                                                 </Border.StrokeShape>
 
-                                                <VerticalStackLayout Spacing="0">
+                                                <VerticalStackLayout Spacing="0" HorizontalOptions="Start">
                                                     <Label x:Name="TimeRangeLabel" Text="{TemplateBinding Content}" MaxLines="1"
                                                            HorizontalTextAlignment="Center" VerticalTextAlignment="Center"
+                                                           HorizontalOptions="Start"
                                                            Margin="5,5,5,5" />
                                                 </VerticalStackLayout>
                                             </Border>
