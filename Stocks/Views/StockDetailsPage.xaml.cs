@@ -168,7 +168,7 @@ public partial class StockDetailsPage : ContentPage
         SubtitleLabel.Text = quote.Description;
 
         MarketPriceLabel.Text = Format(quote.RegularMarketPrice);
-        if (quote.RegularMarketPrice > 0)
+        if (quote.RegularMarketChange > 0)
         {
             MarketChangeLabel.Text = string.Format("+{0:0.00}", quote.RegularMarketChange);
             MarketChangeLabel.TextColor = Color.Parse("Green");
@@ -232,8 +232,12 @@ public partial class StockDetailsPage : ContentPage
     {
         var utcTimestamp = new DateTime((long)ticks, DateTimeKind.Utc);
         var timestamp = utcTimestamp.ToLocalTime();
+        var hour = timestamp.Hour;
 
-        return timestamp.ToString("hh");
+        if (hour > 12)
+            hour -= 12;
+
+        return hour.ToString();
     }
 
     static string DailyLabeler(double ticks)
@@ -280,6 +284,11 @@ public partial class StockDetailsPage : ContentPage
             minStep = TimeSpan.FromHours(1).Ticks;
             labeler = HourlyLabeler;
         }
+        else if (range == YahooTimeRange.OneMonth)
+        {
+            minStep = TimeSpan.FromDays(7).Ticks;
+            labeler = DailyLabeler;
+        }
         else if (range < YahooTimeRange.ThreeMonth)
         {
             minStep = TimeSpan.FromDays(1).Ticks;
@@ -300,8 +309,11 @@ public partial class StockDetailsPage : ContentPage
             new Axis {
                 SeparatorsPaint = new SolidColorPaint(gridColor),
                 LabelsPaint = new SolidColorPaint(labelColor),
+                LabelsAlignment = Align.Start,
                 Position = AxisPosition.Start,
+                SeparatorsAtCenter = false,
                 ShowSeparatorLines = true,
+                ForceStepToMin = true,
                 MinLimit = minLimit,
                 MaxLimit = maxLimit,
                 MinStep = minStep,
@@ -321,6 +333,7 @@ public partial class StockDetailsPage : ContentPage
             new Axis {
                 SeparatorsPaint = new SolidColorPaint(gridColor),
                 LabelsPaint = new SolidColorPaint(labelColor),
+                LabelsAlignment = Align.Start,
                 Position = AxisPosition.End,
                 UnitWidth = timeUnit.Ticks,
                 ShowSeparatorLines = true,
@@ -333,6 +346,7 @@ public partial class StockDetailsPage : ContentPage
 
     void UpdateChart(YahooTimeRange range, YahooFinanceChart chart)
     {
+        double maxTimestamp = DateTime.UnixEpoch.AddSeconds(chart.Meta.CurrentTradingPeriod.Regular.End).Ticks;
         var timeUnits = GetDataGranularity(chart.Meta.DataGranularity);
         var quote = chart.Indicators.Quote[0];
         double startPrice = -1, endPrice = -1;
@@ -340,19 +354,19 @@ public partial class StockDetailsPage : ContentPage
         double? minClosingPrice = null;
         double? maxClosingPrice = null;
         double? minTimestamp = null;
-        double? maxTimestamp = null;
 
-        var values = new FinancialPoint[quote.Close.Length];
+        var values = new List<FinancialPoint>(quote.Close.Length);
 
         if (quote.Close.Length > 0)
-        {
-            maxTimestamp = DateTime.UnixEpoch.AddSeconds(timestamps[timestamps.Length - 1]).Ticks;
             minTimestamp = DateTime.UnixEpoch.AddSeconds(timestamps[0]).Ticks;
-        }
 
         for (int i = 0; i < quote.Close.Length; i++)
         {
-            values[i] = new FinancialPoint(DateTime.UnixEpoch.AddSeconds(timestamps[i]), quote.High[i], quote.Open[i], quote.Close[i], quote.Low[i]);
+            if (timestamps[i] > chart.Meta.CurrentTradingPeriod.Regular.End)
+                break;
+
+            var value = new FinancialPoint(DateTime.UnixEpoch.AddSeconds(timestamps[i]), quote.High[i], quote.Open[i], quote.Close[i], quote.Low[i]);
+            values.Add(value);
 
             if (quote.Close[i].HasValue)
             {
@@ -373,7 +387,7 @@ public partial class StockDetailsPage : ContentPage
             new LineSeries<FinancialPoint>
             {
                 Values = values,
-                Stroke = new SolidColorPaint(color, 1),
+                Stroke = new SolidColorPaint(color, 2),
                 Fill = new LinearGradientPaint(color.WithAlpha(0x00), color.WithAlpha(0xaa), new SKPoint(0, 1), new SKPoint(0, 0)),
                 TooltipLabelFormatter = DefaultTooltipFormatter,
                 GeometryFill = null,
