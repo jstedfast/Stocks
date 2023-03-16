@@ -211,58 +211,167 @@ namespace Stocks
 
         static string GetChartInterval(YahooTimeRange range)
         {
-            if (range == YahooTimeRange.OneDay)
-                return "1m";
-            if (range == YahooTimeRange.FiveDay)
-                return "5m";
+            if (range < YahooTimeRange.OneMonth)
+                return "1m"; // Yahoo! Finance only supports 1m intervals for up to 7 days worth of data.
+            if (range < YahooTimeRange.ThreeMonth)
+                return "5m"; // Yahoo! Finance only supports 5m intervals for up to 60 days worth of data.
             return "1d";
         }
 
         static void GetChartParameters(YahooFinanceQuote quote, YahooTimeRange range, out DateTime period1, out DateTime period2)
         {
-            DateTime firstTradeDate = UnixEpoch.AddMilliseconds(quote.FirstTradeDateMilliseconds);
+            var firstTradeDate = UnixEpoch.AddMilliseconds(quote.FirstTradeDateMilliseconds);
+            var now = DateTimeOffset.UtcNow.ToOffset(quote.GmtOffset);
+            DateTimeOffset start, end, close;
             var tzOffset = quote.GmtOffset;
-            DateTime now = DateTime.Now;
 
-            var start = new DateTimeOffset(now.Year, now.Month, now.Day, 10, 0, 0, tzOffset);
-            if (start > now)
-                start = start.AddDays(-1);
-
-            var end = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, tzOffset);
+            close = new DateTimeOffset(now.Year, now.Month, now.Day, 16, 0, 0, tzOffset);
 
             switch (range)
             {
                 case YahooTimeRange.OneDay:
+                    start = new DateTimeOffset(now.Year, now.Month, now.Day, 10, 0, 0, tzOffset);
+                    if (now < start)
+                    {
+                        // The market hasn't yet opened. Use yesterday's data.
+                        start = start.AddDays(-1);
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = now >= close ? close : now;
+                    }
                     break;
                 case YahooTimeRange.FiveDay:
                     // Note: 5 business days ago is the same as 7 days ago.
-                    start = start.AddDays(-7);
+                    if (now < close)
+                    {
+                        // The market hasn't closed yet. End with yesterday's data.
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = close;
+                    }
+                    start = end.AddDays(-7);
                     break;
                 case YahooTimeRange.OneMonth:
-                    start = start.AddMonths(-1);
+                    if (now < close)
+                    {
+                        // The market hasn't closed yet. End with yesterday's data.
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = close;
+                    }
+                    start = end.AddMonths(-1);
                     break;
                 case YahooTimeRange.ThreeMonth:
-                    start = start.AddMonths(-3);
+                    if (now < close)
+                    {
+                        // The market hasn't closed yet. End with yesterday's data.
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = close;
+                    }
+                    start = end.AddMonths(-3);
                     break;
                 case YahooTimeRange.SixMonth:
-                    start = start.AddMonths(-6);
+                    if (now < close)
+                    {
+                        // The market hasn't closed yet. End with yesterday's data.
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = close;
+                    }
+                    start = end.AddMonths(-6);
                     break;
                 case YahooTimeRange.OneYear:
-                    start = start.AddYears(-1);
+                    if (now < close)
+                    {
+                        // The market hasn't closed yet. End with yesterday's data.
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = close;
+                    }
+                    start = end.AddYears(-1);
                     break;
                 case YahooTimeRange.TwoYear:
-                    start = start.AddYears(-2);
+                    if (now < close)
+                    {
+                        // The market hasn't closed yet. End with yesterday's data.
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = close;
+                    }
+                    start = end.AddYears(-2);
                     break;
                 case YahooTimeRange.FiveYear:
-                    start = start.AddYears(-5);
+                    if (now < close)
+                    {
+                        // The market hasn't closed yet. End with yesterday's data.
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = close;
+                    }
+                    start = end.AddYears(-5);
                     break;
                 case YahooTimeRange.TenYear:
-                    start = start.AddYears(-10);
+                    if (now < close)
+                    {
+                        // The market hasn't closed yet. End with yesterday's data.
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = close;
+                    }
+                    start = end.AddYears(-10);
                     break;
                 case YahooTimeRange.YearToDate:
-                    start = new DateTimeOffset(start.Year, 1, 1, 10, 0, 0, tzOffset);
+                    if (now < close)
+                    {
+                        // The market hasn't closed yet. End with yesterday's data.
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = close;
+                    }
+                    start = new DateTimeOffset(now.Year, 1, 1, 10, 0, 0, tzOffset);
                     break;
                 case YahooTimeRange.Max:
+                    if (now < close)
+                    {
+                        // The market hasn't closed yet. End with yesterday's data.
+                        end = close.AddDays(-1);
+                    }
+                    else
+                    {
+                        // Use today's data.
+                        end = close;
+                    }
                     start = new DateTimeOffset(firstTradeDate);
                     break;
                 default:
@@ -289,8 +398,8 @@ namespace Stocks
             //period2: 1671051600
 
             // Approx 7 PM EST on Dec 14, 2022
-            //var period1 = UnixEpoch.AddSeconds(1670878800);
-            //var period2 = UnixEpoch.AddSeconds(1671051600);
+            //var period1 = UnixEpoch.AddSeconds(1670878800); => 12/12/2022 4:00:00 PM
+            //var period2 = UnixEpoch.AddSeconds(1671051600); => 12/14/2022 4:00:00 PM
 
             GetChartParameters(quote, range, out var period1, out var period2);
 
