@@ -262,6 +262,9 @@ namespace Stocks
                 case YahooTimeRange.YearToDate:
                     start = new DateTimeOffset(start.Year, 1, 1, 10, 0, 0, tzOffset);
                     break;
+                case YahooTimeRange.Max:
+                    start = new DateTimeOffset(firstTradeDate);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(range));
             }

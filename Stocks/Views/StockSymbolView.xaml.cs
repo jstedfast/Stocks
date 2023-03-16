@@ -1,4 +1,6 @@
-﻿using LiveChartsCore;
+﻿using System.Globalization;
+
+using LiveChartsCore;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
@@ -6,7 +8,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using LiveChartsCore.SkiaSharpView.SKCharts;
 using SkiaSharp;
-using System.Globalization;
+
 using LinearGradientPaint = LiveChartsCore.SkiaSharpView.Painting.LinearGradientPaint;
 
 namespace Stocks.Views;
@@ -92,6 +94,9 @@ public partial class StockSymbolView : ViewCell
 
         if (units.Equals("h".AsSpan(), StringComparison.Ordinal))
             return value * 60 * 60;
+
+        if (units.Equals("d".AsSpan(), StringComparison.Ordinal))
+            return value * 24 * 60 * 60;
 
         return value;
     }

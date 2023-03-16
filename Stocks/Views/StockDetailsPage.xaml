@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
              x:Class="Stocks.Views.StockDetailsPage"
+             x:Name="page"
              Title="StockDetailsPage">
     <VerticalStackLayout Spacing="6" VerticalOptions="Start" Padding="8,0">
         <Label x:Name="SubtitleLabel"
@@ -30,10 +31,10 @@
         <!-- Add a chart here -->
         <Grid ColumnDefinitions="Auto" RowDefinitions="Auto,Auto" RowSpacing="0" ColumnSpacing="0">
             <ScrollView Grid.Row="0" Grid.Column="0" Orientation="Horizontal" HorizontalScrollBarVisibility="Default" VerticalScrollBarVisibility="Never">
-                <HorizontalStackLayout RadioButtonGroup.GroupName="ChartTimeRanges" HorizontalOptions="Start" Spacing="0">
+                <HorizontalStackLayout x:Name="StockPriceChartTimeRangesLayout" RadioButtonGroup.GroupName="StockPriceChartTimeRanges" HorizontalOptions="Start" Spacing="0" BindableLayout.ItemsSource="{Binding Source={x:Reference page}, Path=StockPriceChartTimeRanges}">
                     <BindableLayout.ItemTemplate>
                         <DataTemplate>
-                            <RadioButton Content="{Binding .}" HorizontalOptions="Start">
+                            <RadioButton Content="{Binding Name}" Value="{Binding Value}" HorizontalOptions="Start">
                                 <RadioButton.ControlTemplate>
                                     <ControlTemplate>
                                         <VerticalStackLayout Spacing="0" HorizontalOptions="Start">
@@ -74,25 +75,10 @@
                             </RadioButton>
                         </DataTemplate>
                     </BindableLayout.ItemTemplate>
-                    <BindableLayout.ItemsSource>
-                        <x:Array Type="{x:Type x:String}">
-                            <x:String>1D</x:String>
-                            <x:String>1W</x:String>
-                            <x:String>1M</x:String>
-                            <x:String>3M</x:String>
-                            <x:String>6M</x:String>
-                            <x:String>YTD</x:String>
-                            <x:String>1Y</x:String>
-                            <x:String>2Y</x:String>
-                            <x:String>5Y</x:String>
-                            <x:String>10Y</x:String>
-                            <x:String>ALL</x:String>
-                        </x:Array>
-                    </BindableLayout.ItemsSource>
                 </HorizontalStackLayout>
             </ScrollView>
 
-            <lvc:CartesianChart x:Name="StockPriceChart" Grid.Row="1" Grid.Column="0" Background="Transparent" />
+            <lvc:CartesianChart x:Name="StockPriceChart" Grid.Row="1" Grid.Column="0" Background="Transparent" WidthRequest="480" HeightRequest="360" HorizontalOptions="Start" VerticalOptions="Center" />
         </Grid>
 
         <ScrollView Orientation="Horizontal" HorizontalOptions="FillAndExpand">
