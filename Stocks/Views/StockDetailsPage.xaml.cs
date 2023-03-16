@@ -42,6 +42,10 @@ public partial class StockDetailsPage : ContentPage
     const long OneHundredMillion = 100000000;
     const long TenMillion = 10000000;
     const long OneMillion = 1000000;
+    const double OneYear = 365.25;
+    const double OneMonth = OneYear / 12;
+    const double OneWeek = 7;
+    const double OneDay = 1;
     readonly Stock stock;
 
     CancellationTokenSource cancellationTokenSource;
@@ -61,7 +65,7 @@ public partial class StockDetailsPage : ContentPage
         };
         StockPriceChart.TooltipFindingStrategy = TooltipFindingStrategy.CompareOnlyX;
         StockPriceChart.DrawMargin = new Margin(0);
-        UpdateXAxis(YahooTimeRange.OneDay, null, null);
+        UpdateXAxis(YahooTimeRange.OneDay, null, null, null);
         UpdateYAxis(TimeSpan.FromMinutes(1), null, null);
 
         foreach (var radio in StockPriceChartTimeRangesLayout.Children.OfType<RadioButton>())
@@ -271,37 +275,50 @@ public partial class StockDetailsPage : ContentPage
         return $"{dateTime}\r\n{value}";
     }
 
-    void UpdateXAxis(YahooTimeRange range, double? minLimit, double? maxLimit)
+    void UpdateXAxis(YahooTimeRange range, long[] timestamps, double? minLimit, double? maxLimit)
     {
-        var theme = App.Current.UserAppTheme;
-        var labelColor = theme == AppTheme.Light ? SKColors.Black : SKColors.White;
-        var gridColor = theme == AppTheme.Light ? SKColors.LightGray : SKColors.DarkSlateGray;
+        var close = DateTime.UnixEpoch.AddSeconds(timestamps != null && timestamps.Length > 0 ? timestamps[timestamps.Length - 1] : 0);
+        var open = DateTime.UnixEpoch.AddSeconds(timestamps != null && timestamps.Length > 0 ? timestamps[0] : 0);
+        var gridColor = App.Current.UserAppTheme == AppTheme.Light ? SKColors.LightGray : SKColors.DarkSlateGray;
+        var labelColor = App.Current.UserAppTheme == AppTheme.Light ? SKColors.Black : SKColors.White;
+        var timeRange = close - open;
         Func<double, string> labeler;
         double minStep;
 
-        if (range == YahooTimeRange.OneDay)
+        if (timeRange.TotalDays < OneDay)
         {
             minStep = TimeSpan.FromHours(1).Ticks;
             labeler = HourlyLabeler;
         }
-        else if (range == YahooTimeRange.OneMonth)
+        else if (timeRange.TotalDays < OneWeek)
         {
-            minStep = TimeSpan.FromDays(7).Ticks;
+            minStep = TimeSpan.FromDays(OneDay).Ticks;
             labeler = DailyLabeler;
         }
-        else if (range < YahooTimeRange.ThreeMonth)
+        else if (timeRange.TotalDays < OneMonth)
         {
-            minStep = TimeSpan.FromDays(1).Ticks;
+            minStep = TimeSpan.FromDays(OneWeek).Ticks;
             labeler = DailyLabeler;
         }
-        else if (range < YahooTimeRange.FiveYear || range == YahooTimeRange.YearToDate)
+        else if (timeRange.TotalDays < OneMonth * 6)
         {
-            minStep = TimeSpan.FromDays(30.4375).Ticks;
+            minStep = TimeSpan.FromDays(OneMonth).Ticks;
+            labeler = MonthlyLabeler;
+        }
+        else if (timeRange.TotalDays < OneYear * 2)
+        {
+            var months = timeRange.TotalDays / OneMonth;
+            var multiplier = months / 5;
+
+            minStep = TimeSpan.FromDays(OneMonth * multiplier).Ticks;
             labeler = MonthlyLabeler;
         }
         else
         {
-            minStep = TimeSpan.FromDays(365.25).Ticks;
+            var years = timeRange.TotalDays / OneYear;
+            var multiplier = years / 5;
+
+            minStep = TimeSpan.FromDays(OneYear * multiplier).Ticks;
             labeler = YearlyLabeler;
         }
 
@@ -325,9 +342,8 @@ public partial class StockDetailsPage : ContentPage
 
     void UpdateYAxis(TimeSpan timeUnit, double? minLimit, double? maxLimit)
     {
-        var theme = App.Current.UserAppTheme;
-        var labelColor = theme == AppTheme.Light ? SKColors.Black : SKColors.White;
-        var gridColor = theme == AppTheme.Light ? SKColors.LightGray : SKColors.DarkSlateGray;
+        var gridColor = App.Current.UserAppTheme == AppTheme.Light ? SKColors.LightGray : SKColors.DarkSlateGray;
+        var labelColor = App.Current.UserAppTheme == AppTheme.Light ? SKColors.Black : SKColors.White;
 
         StockPriceChart.YAxes = new[] {
             new Axis {
@@ -349,11 +365,10 @@ public partial class StockDetailsPage : ContentPage
         double maxTimestamp = DateTime.UnixEpoch.AddSeconds(chart.Meta.CurrentTradingPeriod.Regular.End).Ticks;
         var timeUnits = GetDataGranularity(chart.Meta.DataGranularity);
         var quote = chart.Indicators.Quote[0];
-        double startPrice = -1, endPrice = -1;
         var timestamps = chart.Timestamp;
-        double? minClosingPrice = null;
-        double? maxClosingPrice = null;
         double? minTimestamp = null;
+        double open = 0, close = 0;
+        double high = 0, low = 0;
 
         var values = new List<FinancialPoint>(quote.Close.Length);
 
@@ -368,19 +383,25 @@ public partial class StockDetailsPage : ContentPage
             var value = new FinancialPoint(DateTime.UnixEpoch.AddSeconds(timestamps[i]), quote.High[i], quote.Open[i], quote.Close[i], quote.Low[i]);
             values.Add(value);
 
-            if (quote.Close[i].HasValue)
-            {
-                minClosingPrice = minClosingPrice.HasValue ? Math.Min(minClosingPrice.Value, quote.Close[i].Value) : quote.Close[i].Value;
-                maxClosingPrice = maxClosingPrice.HasValue ? Math.Max(maxClosingPrice.Value, quote.Close[i].Value) : quote.Close[i].Value;
-
-                if (startPrice < 0)
-                    startPrice = quote.Close[i].Value;
-
-                endPrice = quote.Close[i].Value;
+            if (open == 0) {
+                if (quote.Open[i].HasValue)
+                    open = quote.Open[i].Value;
+                else if (quote.Close[i].HasValue)
+                    open = quote.Close[i].Value;
+                low = open;
             }
+
+            if (quote.High[i].HasValue)
+                high = Math.Max(high, quote.High[i].Value);
+
+            if (quote.Low[i].HasValue)
+                low = Math.Min(low, quote.Low[i].Value);
+
+            if (quote.Close[i].HasValue)
+                close = quote.Close[i].Value;
         }
 
-        var color = endPrice >= startPrice ? SKColors.Green : SKColors.Red;
+        var color = close >= open ? SKColors.Green : SKColors.Red;
 
         StockPriceChart.Series = new ISeries[]
         {
@@ -395,8 +416,8 @@ public partial class StockDetailsPage : ContentPage
             }
         };
 
-        UpdateXAxis(range, minTimestamp, maxTimestamp);
-        UpdateYAxis(timeUnits, minClosingPrice, maxClosingPrice);
+        UpdateXAxis(range, timestamps, minTimestamp, maxTimestamp);
+        UpdateYAxis(timeUnits, low, high);
     }
 
     async void OnStockPriceChartTimeRangeRadioChecked(object sender, CheckedChangedEventArgs e)
@@ -414,6 +435,7 @@ public partial class StockDetailsPage : ContentPage
                 {
                     var chart = await YahooFinanceClient.Default.GetChartAsync(stock.Quote, range, cancellation.Token);
                     UpdateChart(range, chart);
+                    //MauiProgram.YahooFinanceThread.WatchChart(stock);
                 }
                 catch (OperationCanceledException) { }
                 finally

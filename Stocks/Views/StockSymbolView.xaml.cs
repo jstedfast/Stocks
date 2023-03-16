@@ -15,7 +15,7 @@ namespace Stocks.Views;
 
 public partial class StockSymbolView : ViewCell
 {
-    Stock stock;
+    readonly Stock stock;
     SKData data;
 
     public StockSymbolView(Stock stock)

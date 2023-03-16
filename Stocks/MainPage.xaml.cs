@@ -6,7 +6,6 @@ public partial class MainPage : ContentPage
 {
     public MainPage()
     {
-        var theme = App.Current.PlatformAppTheme;
         App.Current.UserAppTheme = AppTheme.Dark;
 
         InitializeComponent();
