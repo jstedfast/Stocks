@@ -303,15 +303,41 @@ public partial class StockDetailsPage : ContentPage
     }
 #endif
 
-    static string HourlyTooltipFormatter(ChartPoint<FinancialPoint, BezierPoint<CircleGeometry>, LabelGeometry> point)
+    Func<double, string> GetXAxesLabeler(YahooFinanceTimeRange range, List<StockTradePoint> values)
     {
-        var value = point.Model.Close.HasValue ? point.Model.Close.Value.ToString("0,0.00") : "-";
-        var dateTime = point.Model.Date.ToLocalTime().ToString("t");
+        switch (range)
+        {
+            case YahooFinanceTimeRange.OneDay:     return HourlyLabeler;
+            case YahooFinanceTimeRange.FiveDay:    return DailyLabeler;
+            case YahooFinanceTimeRange.OneMonth:   return DailyLabeler;
+            case YahooFinanceTimeRange.ThreeMonth: return MonthlyLabeler;
+            case YahooFinanceTimeRange.SixMonth:   return MonthlyLabeler;
+            case YahooFinanceTimeRange.OneYear:    return MonthlyLabeler;
+            case YahooFinanceTimeRange.TwoYear:    return MonthlyLabeler;
+            case YahooFinanceTimeRange.FiveYear:   return YearlyLabeler;
+            case YahooFinanceTimeRange.TenYear:    return YearlyLabeler;
+            case YahooFinanceTimeRange.Max:        return YearlyLabeler;
+            case YahooFinanceTimeRange.YearToDate:
+            default:
+                if (values != null && values.Count > 0)
+                {
+                    var endTime = values[values.Count - 1].Timestamp;
+                    var startTime = values[0].Timestamp;
+                    var elapsed = endTime - startTime;
 
-        return $"{dateTime}\r\n{value}";
+                    if (elapsed.Days < 1)
+                        return HourlyLabeler;
+                    if (elapsed.Days <= 31)
+                        return DailyLabeler;
+                    if (elapsed.Days <= 730)
+                        return MonthlyLabeler;
+                    return YearlyLabeler;
+                }
+                return HourlyLabeler;
+        }
     }
 
-    static string DefaultTooltipFormatter(ChartPoint<StockTradePoint, BezierPoint<CircleGeometry>, LabelGeometry> point)
+    static string StockTradeTooltipFormatter(ChartPoint<StockTradePoint, BezierPoint<CircleGeometry>, LabelGeometry> point)
     {
         var dateTime = point.Model.Timestamp.ToLocalTime().ToString("dddd, MMMM dd h:mm tt");
         var close = Format(point.Model.Close);
@@ -327,7 +353,7 @@ public partial class StockDetailsPage : ContentPage
         var gridColor = App.Current.UserAppTheme == AppTheme.Light ? SKColors.LightGray : SKColors.DarkSlateGray;
         var labelColor = App.Current.UserAppTheme == AppTheme.Light ? SKColors.Black : SKColors.White;
         var maxLimit = values != null ? values.Count : 0;
-        Func<double, string> labeler;
+        var labeler = GetXAxesLabeler(range, values);
         TimeSpan timeRange;
         double minStep = 1;
 
@@ -346,22 +372,18 @@ public partial class StockDetailsPage : ContentPage
         if (timeRange.TotalDays < OneDay)
         {
             minStep = TimeSpan.FromHours(1).Ticks;
-            labeler = HourlyLabeler;
         }
         else if (timeRange.TotalDays < OneWeek)
         {
             minStep = TimeSpan.FromDays(OneDay).Ticks;
-            labeler = DailyLabeler;
         }
         else if (timeRange.TotalDays < OneMonth)
         {
             minStep = TimeSpan.FromDays(OneWeek).Ticks;
-            labeler = DailyLabeler;
         }
         else if (timeRange.TotalDays < OneMonth * 6)
         {
             minStep = TimeSpan.FromDays(OneMonth).Ticks;
-            labeler = MonthlyLabeler;
         }
         else if (timeRange.TotalDays < OneYear * 2)
         {
@@ -369,7 +391,6 @@ public partial class StockDetailsPage : ContentPage
             var multiplier = months / 5;
 
             minStep = TimeSpan.FromDays(OneMonth * multiplier).Ticks;
-            labeler = MonthlyLabeler;
         }
         else
         {
@@ -377,7 +398,6 @@ public partial class StockDetailsPage : ContentPage
             var multiplier = years / 5;
 
             minStep = TimeSpan.FromDays(OneYear * multiplier).Ticks;
-            labeler = YearlyLabeler;
         }
 
         StockPriceChart.XAxes = new[] {
@@ -393,7 +413,7 @@ public partial class StockDetailsPage : ContentPage
                 MinLimit = 0,
                 MaxLimit = maxLimit,
                 //MinStep = minStep,
-                //Labeler = labeler,
+                Labeler = labeler,
                 IsVisible = true
             }
         };
@@ -489,7 +509,7 @@ public partial class StockDetailsPage : ContentPage
                 Values = values,
                 Stroke = new SolidColorPaint(color, 2),
                 Fill = new LinearGradientPaint(color.WithAlpha(0x00), color.WithAlpha(0xaa), new SKPoint(0, 1), new SKPoint(0, 0)),
-                TooltipLabelFormatter = DefaultTooltipFormatter,
+                TooltipLabelFormatter = StockTradeTooltipFormatter,
                 EnableNullSplitting = false,
                 GeometryFill = null,
                 GeometrySize = 0,
