@@ -1,4 +1,4 @@
-﻿namespace Stocks;
+﻿namespace Stocks.Models;
 
 class StockTradePoint
 {
@@ -15,12 +15,12 @@ class StockTradePoint
     public int Index { get; }
 
     public DateTimeOffset Timestamp { get; }
-    
+
     public double? Open { get; }
-    
+
     public double? Close { get; }
-    
+
     public double? High { get; }
-    
+
     public double? Low { get; }
 }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Stocks.Models;
+using Stocks.YahooFinance;
 
 namespace Stocks;
 

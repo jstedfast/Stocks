@@ -1,4 +1,4 @@
-﻿namespace Stocks
+﻿namespace Stocks.YahooFinance
 {
     public enum YahooFinanceChartTimeRange
     {

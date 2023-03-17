@@ -1,13 +1,16 @@
-﻿namespace Stocks.Views;
+﻿using Stocks.YahooFinance;
+
+namespace Stocks.Models;
 
 public class StockPriceChartTimeRange
 {
-    public string Name { get; private set; }
-    public YahooFinanceChartTimeRange Value { get; private set; }
-
     public StockPriceChartTimeRange(string name, YahooFinanceChartTimeRange value)
     {
         Name = name;
         Value = value;
     }
+
+    public string Name { get; private set; }
+
+    public YahooFinanceChartTimeRange Value { get; private set; }
 }

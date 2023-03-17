@@ -1,12 +1,10 @@
-﻿using System;
-using System.Net;
-using System.Net.Http;
+﻿using System.Net;
 
-namespace Stocks
+namespace Stocks.YahooFinance
 {
     class YahooFinanceException : Exception
     {
-        public YahooFinanceException(HttpStatusCode statusCode, string code, string description) : base (description)
+        public YahooFinanceException(HttpStatusCode statusCode, string code, string description) : base(description)
         {
             StatusCode = statusCode;
             Code = code;

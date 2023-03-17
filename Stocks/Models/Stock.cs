@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace Stocks;
+using Stocks.YahooFinance;
+
+namespace Stocks.Models;
 
 public class Stock
 {

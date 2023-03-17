@@ -1,5 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
+
 using SkiaSharp.Views.Maui.Controls.Hosting;
+
+using Stocks.Models;
 
 namespace Stocks;
 

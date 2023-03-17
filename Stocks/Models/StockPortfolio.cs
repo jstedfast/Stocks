@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Stocks;
+namespace Stocks.Models;
 
 public class StockPortfolio
 {

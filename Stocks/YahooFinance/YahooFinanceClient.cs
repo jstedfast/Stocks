@@ -3,7 +3,7 @@ using System.Text;
 
 using Newtonsoft.Json.Linq;
 
-namespace Stocks
+namespace Stocks.YahooFinance
 {
     public class YahooFinanceClient : IDisposable
     {
@@ -142,7 +142,7 @@ namespace Stocks
             return GenerateCSharpFromJson(name, properties, counts, array.Count);
         }
 
-        static void SetDefaultRequestHeaders (HttpRequestMessage request)
+        static void SetDefaultRequestHeaders(HttpRequestMessage request)
         {
             request.Headers.Add("Accept-Language", "en-US");
             request.Headers.Add("Connection", "keep-alive");
@@ -230,10 +230,10 @@ namespace Stocks
             // valid intervals: 1m (< 7 days data), 2m, 5m, 15m, 30m (< 60 days data), 60m (< 730 days), 90m (< 60 days data), 1h (< 130 days), 1d, 5d, 1wk, 1mo, 3mo
             var timespan = now - startDate;
 
-            if (timespan.TotalDays < 1)
+            if (timespan.Days <= 1)
                 return YahooFinanceTimeInterval.OneMinute;
 
-            if (timespan.TotalDays < 7 + 1) // 1 week
+            if (timespan.Days <= 7) // 1 week
                 return YahooFinanceTimeInterval.TwoMinutes;
 
             if (timespan.TotalDays < 31 + 1) // 1 month
@@ -532,7 +532,7 @@ namespace Stocks
             }
         }
 
-        public async Task<YahooStockData> GetHistoryAsync(string symbol, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default)
+        public async Task<YahooFinanceHistoricTradeData> GetHistoricTradeDataAsync(string symbol, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default)
         {
             const string format = "https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval=1d&events=history&includeAdjustedClose=true";
             var requestUri = string.Format(format, symbol, SecondsSinceEpoch(start), SecondsSinceEpoch(end));
@@ -567,11 +567,11 @@ namespace Stocks
                         using (var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false))
                         {
                             if (response.IsSuccessStatusCode)
-                                return await YahooStockData.LoadAsync(stream, cancellationToken).ConfigureAwait(false);
+                                return await YahooFinanceHistoricTradeData.LoadAsync(stream, cancellationToken).ConfigureAwait(false);
 
                             if (response.StatusCode == HttpStatusCode.Unauthorized && retries < 5)
                             {
-                                await Task.Delay(1000).ConfigureAwait(false);
+                                await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
                                 retries++;
                                 continue;
                             }
@@ -594,7 +594,8 @@ namespace Stocks
 
         public void Dispose()
         {
-            if (client != null) {
+            if (client != null)
+            {
                 client.Dispose();
                 client = null;
             }

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Stocks
+namespace Stocks.YahooFinance
 {
     public class YahooFinanceQuote
     {
@@ -11,7 +11,7 @@ namespace Stocks
         static readonly Dictionary<string, string> SymbolDescriptionOverrides;
         static readonly Dictionary<string, string> SymbolNameOverrides;
 
-        static YahooFinanceQuote ()
+        static YahooFinanceQuote()
         {
             SymbolNameOverrides = new Dictionary<string, string>
             {
@@ -318,11 +318,11 @@ namespace Stocks
             {
                 var offset = GmtOffSetMilliseconds;
 
-                int hours = (int) offset / MillisecondsPerHour;
+                int hours = (int)offset / MillisecondsPerHour;
                 offset = offset % MillisecondsPerHour;
-                int minutes = (int) offset / MillisecondsPerMinute;
+                int minutes = (int)offset / MillisecondsPerMinute;
                 offset = offset % MillisecondsPerMinute;
-                int seconds = (int) offset / MillisecondsPerSecond;
+                int seconds = (int)offset / MillisecondsPerSecond;
 
                 return new TimeSpan(hours, minutes, seconds);
             }

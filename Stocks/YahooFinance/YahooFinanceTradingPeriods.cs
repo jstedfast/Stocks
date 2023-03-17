@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Stocks
+namespace Stocks.YahooFinance
 {
     public class YahooFinanceTradingPeriods
     {

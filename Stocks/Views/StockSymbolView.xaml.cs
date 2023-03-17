@@ -7,7 +7,11 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using LiveChartsCore.SkiaSharpView.SKCharts;
+
 using SkiaSharp;
+
+using Stocks.Models;
+using Stocks.YahooFinance;
 
 using LinearGradientPaint = LiveChartsCore.SkiaSharpView.Painting.LinearGradientPaint;
 

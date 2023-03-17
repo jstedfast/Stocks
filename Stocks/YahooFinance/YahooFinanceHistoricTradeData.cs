@@ -1,9 +1,9 @@
 ﻿using System.Text;
 using System.Globalization;
 
-namespace Stocks
+namespace Stocks.YahooFinance
 {
-    public class YahooStockData
+    public class YahooFinanceHistoricTradeData
     {
         const NumberStyles CsvValueStyle = NumberStyles.AllowDecimalPoint | NumberStyles.Integer;
         static readonly char[] CsvDelimeters = { ',' };
@@ -11,7 +11,7 @@ namespace Stocks
         readonly List<object[]> values;
         string[] headers;
 
-        YahooStockData()
+        YahooFinanceHistoricTradeData()
         {
             values = new List<object[]>();
         }
@@ -42,11 +42,11 @@ namespace Stocks
             return values[row][column];
         }
 
-        public static async Task<YahooStockData> LoadAsync(Stream stream, CancellationToken cancellationToken)
+        public static async Task<YahooFinanceHistoricTradeData> LoadAsync(Stream stream, CancellationToken cancellationToken)
         {
-            var stockData = new YahooStockData();
+            var stockData = new YahooFinanceHistoricTradeData();
 
-            using (var reader = new StreamReader(stream, Encoding.ASCII, false, 4096, true))
+            using (var reader = new StreamReader(stream, Encoding.UTF8, false, 4096, true))
             {
                 var line = await reader.ReadLineAsync();
                 var tokens = line.Split(CsvDelimeters);

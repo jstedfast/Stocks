@@ -1,11 +1,11 @@
 ﻿using Newtonsoft.Json;
 
-namespace Stocks
+namespace Stocks.YahooFinance
 {
-    public class YahooFinanceChartResponseData
+    public class YahooFinanceQuoteResponseData
     {
         [JsonProperty("result")]
-        public YahooFinanceChart[] Result { get; set; }
+        public YahooFinanceQuote[] Result { get; set; }
 
         [JsonProperty("error")]
         public YahooFinanceError Error { get; set; }

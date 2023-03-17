@@ -1,11 +1,11 @@
 ﻿using Newtonsoft.Json;
 
-namespace Stocks
+namespace Stocks.YahooFinance
 {
-    public  class YahooFinanceSpark
+    public class YahooFinanceChart
     {
         [JsonProperty("meta")]
-        public YahooFinanceSparkMeta Meta { get; set; }
+        public YahooFinanceChartMeta Meta { get; set; }
 
         [JsonProperty("timestamp")]
         public long[] Timestamp { get; set; }

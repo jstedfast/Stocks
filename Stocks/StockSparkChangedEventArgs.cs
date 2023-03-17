@@ -1,4 +1,6 @@
-﻿namespace Stocks;
+﻿using Stocks.YahooFinance;
+
+namespace Stocks;
 
 public class StockSparkChangedEventArgs : EventArgs
 {
