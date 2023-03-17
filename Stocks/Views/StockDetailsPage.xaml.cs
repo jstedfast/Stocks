@@ -24,17 +24,17 @@ public partial class StockDetailsPage : ContentPage
 {
     static readonly StockPriceChartTimeRange[] TimeRanges = new StockPriceChartTimeRange[]
     {
-        new StockPriceChartTimeRange("1D", YahooFinanceChartTimeRange.OneDay),
-        new StockPriceChartTimeRange("1W", YahooFinanceChartTimeRange.FiveDay),
-        new StockPriceChartTimeRange("1M", YahooFinanceChartTimeRange.OneMonth),
-        new StockPriceChartTimeRange("3M", YahooFinanceChartTimeRange.ThreeMonth),
-        new StockPriceChartTimeRange("6M", YahooFinanceChartTimeRange.SixMonth),
-        new StockPriceChartTimeRange("YTD", YahooFinanceChartTimeRange.YearToDate),
-        new StockPriceChartTimeRange("1Y", YahooFinanceChartTimeRange.OneYear),
-        new StockPriceChartTimeRange("2Y", YahooFinanceChartTimeRange.TwoYear),
-        new StockPriceChartTimeRange("5Y", YahooFinanceChartTimeRange.FiveYear),
-        new StockPriceChartTimeRange("10Y", YahooFinanceChartTimeRange.TenYear),
-        new StockPriceChartTimeRange("ALL", YahooFinanceChartTimeRange.Max),
+        new StockPriceChartTimeRange("1D", YahooFinanceTimeRange.OneDay),
+        new StockPriceChartTimeRange("1W", YahooFinanceTimeRange.FiveDay),
+        new StockPriceChartTimeRange("1M", YahooFinanceTimeRange.OneMonth),
+        new StockPriceChartTimeRange("3M", YahooFinanceTimeRange.ThreeMonth),
+        new StockPriceChartTimeRange("6M", YahooFinanceTimeRange.SixMonth),
+        new StockPriceChartTimeRange("YTD", YahooFinanceTimeRange.YearToDate),
+        new StockPriceChartTimeRange("1Y", YahooFinanceTimeRange.OneYear),
+        new StockPriceChartTimeRange("2Y", YahooFinanceTimeRange.TwoYear),
+        new StockPriceChartTimeRange("5Y", YahooFinanceTimeRange.FiveYear),
+        new StockPriceChartTimeRange("10Y", YahooFinanceTimeRange.TenYear),
+        new StockPriceChartTimeRange("ALL", YahooFinanceTimeRange.Max),
     };
 
     const long OneTrillion = 1000000000000;
@@ -68,12 +68,12 @@ public partial class StockDetailsPage : ContentPage
         };
         StockPriceChart.TooltipFindingStrategy = TooltipFindingStrategy.CompareOnlyX;
         StockPriceChart.DrawMargin = new Margin(10, 5, 70, 30);
-        UpdateXAxis(YahooFinanceChartTimeRange.OneDay, null, TimeSpan.FromMinutes(1), null, null);
+        UpdateXAxis(YahooFinanceTimeRange.OneDay, null, TimeSpan.FromMinutes(1), null, null);
         UpdateYAxis(null, null);
 
         foreach (var radio in StockPriceChartTimeRangesLayout.Children.OfType<RadioButton>())
         {
-            if (radio.Value is YahooFinanceChartTimeRange range && range == YahooFinanceChartTimeRange.OneDay)
+            if (radio.Value is YahooFinanceTimeRange range && range == YahooFinanceTimeRange.OneDay)
             {
                 radio.IsChecked = true;
                 OnStockPriceChartTimeRangeRadioChecked(radio, null);
@@ -322,7 +322,7 @@ public partial class StockDetailsPage : ContentPage
         return $"{dateTime}\r\nOpen: {open}\r\nClose: {close}\r\nHigh: {high}\r\nLow: {low}";
     }
 
-    void UpdateXAxis(YahooFinanceChartTimeRange range, long[] timestamps, TimeSpan timeUnit, double? minLimit, double? maxLimit)
+    void UpdateXAxis(YahooFinanceTimeRange range, long[] timestamps, TimeSpan timeUnit, double? minLimit, double? maxLimit)
     {
         var close = DateTime.UnixEpoch.AddSeconds(timestamps != null && timestamps.Length > 0 ? timestamps[timestamps.Length - 1] : 0);
         var open = DateTime.UnixEpoch.AddSeconds(timestamps != null && timestamps.Length > 0 ? timestamps[0] : 0);
@@ -413,7 +413,7 @@ public partial class StockDetailsPage : ContentPage
         };
     }
 
-    void UpdateChart(YahooFinanceChartTimeRange range, YahooFinanceChart chart)
+    void UpdateChart(YahooFinanceTimeRange range, YahooFinanceChart chart)
     {
         double maxTimestamp = DateTime.UnixEpoch.AddSeconds(chart.Meta.CurrentTradingPeriod.Regular.End).Ticks;
         var timeUnits = chart.Meta.DataGranularity;
@@ -500,7 +500,7 @@ public partial class StockDetailsPage : ContentPage
     {
         var radio = (RadioButton)sender;
 
-        if (radio.Value is YahooFinanceChartTimeRange range)
+        if (radio.Value is YahooFinanceTimeRange range)
         {
             if (radio.IsChecked)
             {
@@ -514,6 +514,10 @@ public partial class StockDetailsPage : ContentPage
                     //MauiProgram.YahooFinanceThread.WatchChart(stock);
                 }
                 catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
                 finally
                 {
                     cancellationTokenSource = null;

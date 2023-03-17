@@ -107,7 +107,7 @@ public class YahooFinanceThread
 
                 try
                 {
-                    context.Sparks = await client.GetSparksAsync(symbols, YahooFinanceChartTimeRange.OneDay, YahooFinanceTimeInterval.OneMinute, cancellation.Token);
+                    context.Sparks = await client.GetSparksAsync(symbols, YahooFinanceIndicator.Close, YahooFinanceTimeRange.OneDay, YahooFinanceTimeInterval.OneMinute, cancellation.Token);
                 }
                 catch (OperationCanceledException)
                 {

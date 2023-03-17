@@ -4,7 +4,7 @@ namespace Stocks.Models;
 
 public class StockPriceChartTimeRange
 {
-    public StockPriceChartTimeRange(string name, YahooFinanceChartTimeRange value)
+    public StockPriceChartTimeRange(string name, YahooFinanceTimeRange value)
     {
         Name = name;
         Value = value;
@@ -12,5 +12,5 @@ public class StockPriceChartTimeRange
 
     public string Name { get; private set; }
 
-    public YahooFinanceChartTimeRange Value { get; private set; }
+    public YahooFinanceTimeRange Value { get; private set; }
 }
