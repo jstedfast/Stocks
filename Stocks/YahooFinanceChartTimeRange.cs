@@ -1,6 +1,6 @@
 ﻿namespace Stocks
 {
-    public enum YahooTimeRange
+    public enum YahooFinanceChartTimeRange
     {
         OneDay,
         FiveDay,

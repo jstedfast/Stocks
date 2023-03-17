@@ -3,9 +3,9 @@
 public class StockPriceChartTimeRange
 {
     public string Name { get; private set; }
-    public YahooTimeRange Value { get; private set; }
+    public YahooFinanceChartTimeRange Value { get; private set; }
 
-    public StockPriceChartTimeRange(string name, YahooTimeRange value)
+    public StockPriceChartTimeRange(string name, YahooFinanceChartTimeRange value)
     {
         Name = name;
         Value = value;

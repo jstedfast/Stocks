@@ -7,10 +7,11 @@ namespace Stocks
 {
     public class YahooFinanceClient : IDisposable
     {
+        static readonly string[] TimeIntervals = new string[] { "1m", "2m", "5m", "15m", "30m", "60m", "90m", "1h", "1d", "5d", "1wk", "1mo", "3mo" };
         static readonly string[] TimeRanges = new string[] { "1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max" };
         static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         public static readonly YahooFinanceClient Default = new YahooFinanceClient();
-        
+
         HttpClient client;
 
         public YahooFinanceClient()
@@ -178,10 +179,11 @@ namespace Stocks
             }
         }
 
-        // Note: I think this is the data used for generating the mini graph for each stock symbol on their repsective TableView rows in the iOS Stocks app.
-        public async Task<Dictionary<string, YahooFinanceSpark>> GetSparksAsync(IEnumerable<string> symbols, YahooTimeRange range, CancellationToken cancellationToken = default)
+        // Note: This is the data used for generating the mini graph for each stock symbol on their respective TableView rows in the iOS Stocks app.
+        public async Task<Dictionary<string, YahooFinanceSpark>> GetSparksAsync(IEnumerable<string> symbols, YahooFinanceChartTimeRange range, YahooFinanceTimeInterval interval, CancellationToken cancellationToken = default)
         {
-            string requestUri = $"https://query1.finance.yahoo.com/v7/finance/spark?symbols={string.Join(",", symbols.Select(Uri.EscapeDataString))}&range={TimeRanges[(int)range]}&interval=5m&indicators=close&includeTimestamps=false&includePrePost=false&corsDomain=finance.yahoo.com&.tsrc=finance";
+            const string format = "https://query1.finance.yahoo.com/v7/finance/spark?symbols={0}&range={1}&interval={2}&indicators=close&includeTimestamps=false&includePrePost=false&corsDomain=finance.yahoo.com&.tsrc=finance";
+            var requestUri = string.Format(format, string.Join(",", symbols.Select(Uri.EscapeDataString)), TimeRanges[(int)range], TimeIntervals[(int)interval]);
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -209,27 +211,106 @@ namespace Stocks
             }
         }
 
-        static string GetChartInterval(YahooTimeRange range)
+        public static YahooFinanceTimeInterval GetSmallestAllowedTimeInterval(DateTimeOffset startDate)
         {
-            if (range < YahooTimeRange.OneMonth)
-                return "1m"; // Yahoo! Finance only supports 1m intervals for up to 7 days worth of data.
-            if (range < YahooTimeRange.ThreeMonth)
-                return "5m"; // Yahoo! Finance only supports 5m intervals for up to 60 days worth of data.
-            return "1d";
+            var now = DateTimeOffset.UtcNow.ToOffset(startDate.Offset);
+            var timespan = now - startDate;
+
+            if (timespan.TotalDays < 7)
+                return YahooFinanceTimeInterval.OneMinute;
+            if (timespan.TotalDays < 60)
+                return YahooFinanceTimeInterval.TwoMinutes;
+            if (timespan.TotalDays < 730)
+                return YahooFinanceTimeInterval.SixtyMinutes;
+            return YahooFinanceTimeInterval.OneDay;
         }
 
-        static void GetChartParameters(YahooFinanceQuote quote, YahooTimeRange range, out DateTime period1, out DateTime period2)
+        static YahooFinanceTimeInterval GetIdealTimeInterval(DateTimeOffset startDate, DateTimeOffset now)
         {
+            // valid intervals: 1m (< 7 days data), 2m, 5m, 15m, 30m (< 60 days data), 60m (< 730 days), 90m (< 60 days data), 1h (< 130 days), 1d, 5d, 1wk, 1mo, 3mo
+            var timespan = now - startDate;
+
+            if (timespan.TotalDays < 1)
+                return YahooFinanceTimeInterval.OneMinute;
+
+            if (timespan.TotalDays < 7 + 1) // 1 week
+                return YahooFinanceTimeInterval.TwoMinutes;
+
+            if (timespan.TotalDays < 31 + 1) // 1 month
+                return YahooFinanceTimeInterval.FiveMinutes;
+
+            if (timespan.TotalDays < 60) // 2 months
+                return YahooFinanceTimeInterval.ThirtyMinutes;
+
+            if (timespan.TotalDays < 130) // max allowed for 1h
+                return YahooFinanceTimeInterval.OneHour;
+
+            if (timespan.TotalDays < 730) // 2 years
+                return YahooFinanceTimeInterval.SixtyMinutes;
+
+            if (timespan.TotalDays < 2923) // 8 years
+                return YahooFinanceTimeInterval.OneDay;
+
+            if (timespan.TotalDays < 8767) // 24 years
+                return YahooFinanceTimeInterval.FiveDays;
+
+            if (timespan.TotalDays < 11689) // 32 years
+                return YahooFinanceTimeInterval.OneWeek;
+
+            if (timespan.TotalDays < 46756) // 128 years
+                return YahooFinanceTimeInterval.OneMonth;
+
+            return YahooFinanceTimeInterval.ThreeMonths;
+        }
+
+        static bool IsAllowedTimeInterval(DateTimeOffset startDate, YahooFinanceTimeInterval interval)
+        {
+            // valid intervals: 1m (< 7 days data), 2m, 5m, 15m, 30m (< 60 days data), 60m (< 730 days), 90m (< 60 days data), 1h (< 130 days), 1d, 5d, 1wk, 1mo, 3mo
+            var now = DateTimeOffset.UtcNow.ToOffset(startDate.Offset);
+            var timespan = now - startDate;
+
+            switch (interval)
+            {
+                case YahooFinanceTimeInterval.OneMinute:
+                case YahooFinanceTimeInterval.TwoMinutes:
+                    return timespan.Days <= 7;
+                case YahooFinanceTimeInterval.FiveMinutes:
+                case YahooFinanceTimeInterval.FifteenMinutes:
+                    return timespan.Days <= 30;
+                case YahooFinanceTimeInterval.ThirtyMinutes:
+                    return timespan.Days <= 60;
+                case YahooFinanceTimeInterval.SixtyMinutes:
+                    return timespan.Days <= 730;
+                case YahooFinanceTimeInterval.NinetyMinutes:
+                    return timespan.Days <= 60;
+                case YahooFinanceTimeInterval.OneHour:
+                    return timespan.Days <= 130;
+                case YahooFinanceTimeInterval.OneDay:
+                case YahooFinanceTimeInterval.FiveDays:
+                case YahooFinanceTimeInterval.OneWeek:
+                case YahooFinanceTimeInterval.OneMonth:
+                case YahooFinanceTimeInterval.ThreeMonths:
+                    return true;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(interval));
+            }
+        }
+
+        static void GetChartParameters(YahooFinanceQuote quote, YahooFinanceChartTimeRange range, out DateTimeOffset start, out DateTimeOffset end, out YahooFinanceTimeInterval interval)
+        {
+            if (quote == null)
+                throw new ArgumentNullException(nameof(quote));
+
             var firstTradeDate = UnixEpoch.AddMilliseconds(quote.FirstTradeDateMilliseconds);
             var now = DateTimeOffset.UtcNow.ToOffset(quote.GmtOffset);
-            DateTimeOffset start, end, close;
             var tzOffset = quote.GmtOffset;
+            DateTimeOffset close;
 
             close = new DateTimeOffset(now.Year, now.Month, now.Day, 16, 0, 0, tzOffset);
 
             switch (range)
             {
-                case YahooTimeRange.OneDay:
+                case YahooFinanceChartTimeRange.OneDay:
                     start = new DateTimeOffset(now.Year, now.Month, now.Day, 10, 0, 0, tzOffset);
                     if (now < start)
                     {
@@ -243,7 +324,7 @@ namespace Stocks
                         end = now >= close ? close : now;
                     }
                     break;
-                case YahooTimeRange.FiveDay:
+                case YahooFinanceChartTimeRange.FiveDay:
                     // Note: 5 business days ago is the same as 7 days ago.
                     if (now < close)
                     {
@@ -257,7 +338,7 @@ namespace Stocks
                     }
                     start = end.AddDays(-7);
                     break;
-                case YahooTimeRange.OneMonth:
+                case YahooFinanceChartTimeRange.OneMonth:
                     if (now < close)
                     {
                         // The market hasn't closed yet. End with yesterday's data.
@@ -270,7 +351,7 @@ namespace Stocks
                     }
                     start = end.AddMonths(-1);
                     break;
-                case YahooTimeRange.ThreeMonth:
+                case YahooFinanceChartTimeRange.ThreeMonth:
                     if (now < close)
                     {
                         // The market hasn't closed yet. End with yesterday's data.
@@ -283,7 +364,7 @@ namespace Stocks
                     }
                     start = end.AddMonths(-3);
                     break;
-                case YahooTimeRange.SixMonth:
+                case YahooFinanceChartTimeRange.SixMonth:
                     if (now < close)
                     {
                         // The market hasn't closed yet. End with yesterday's data.
@@ -296,7 +377,7 @@ namespace Stocks
                     }
                     start = end.AddMonths(-6);
                     break;
-                case YahooTimeRange.OneYear:
+                case YahooFinanceChartTimeRange.OneYear:
                     if (now < close)
                     {
                         // The market hasn't closed yet. End with yesterday's data.
@@ -309,7 +390,7 @@ namespace Stocks
                     }
                     start = end.AddYears(-1);
                     break;
-                case YahooTimeRange.TwoYear:
+                case YahooFinanceChartTimeRange.TwoYear:
                     if (now < close)
                     {
                         // The market hasn't closed yet. End with yesterday's data.
@@ -322,7 +403,7 @@ namespace Stocks
                     }
                     start = end.AddYears(-2);
                     break;
-                case YahooTimeRange.FiveYear:
+                case YahooFinanceChartTimeRange.FiveYear:
                     if (now < close)
                     {
                         // The market hasn't closed yet. End with yesterday's data.
@@ -335,7 +416,7 @@ namespace Stocks
                     }
                     start = end.AddYears(-5);
                     break;
-                case YahooTimeRange.TenYear:
+                case YahooFinanceChartTimeRange.TenYear:
                     if (now < close)
                     {
                         // The market hasn't closed yet. End with yesterday's data.
@@ -348,7 +429,7 @@ namespace Stocks
                     }
                     start = end.AddYears(-10);
                     break;
-                case YahooTimeRange.YearToDate:
+                case YahooFinanceChartTimeRange.YearToDate:
                     if (now < close)
                     {
                         // The market hasn't closed yet. End with yesterday's data.
@@ -361,7 +442,7 @@ namespace Stocks
                     }
                     start = new DateTimeOffset(now.Year, 1, 1, 10, 0, 0, tzOffset);
                     break;
-                case YahooTimeRange.Max:
+                case YahooFinanceChartTimeRange.Max:
                     if (now < close)
                     {
                         // The market hasn't closed yet. End with yesterday's data.
@@ -378,22 +459,20 @@ namespace Stocks
                     throw new ArgumentOutOfRangeException(nameof(range));
             }
 
-            // convert to UTC date/time
-            period1 = start.ToUniversalTime().DateTime;
-            period2 = end.ToUniversalTime().DateTime;
+            if (start < firstTradeDate)
+                start = firstTradeDate;
 
-            if (period1 < firstTradeDate)
-                period1 = firstTradeDate;
-
-            // TODO: Do we need to worry about the GMT offset at all?
+            interval = GetIdealTimeInterval(start, now);
         }
 
-        // Note: Pretty sure this is the data used to generate the multi-tab chart in the Details View.
-        public async Task<YahooFinanceChart> GetChartAsync(YahooFinanceQuote quote, YahooTimeRange range, CancellationToken cancellationToken = default)
+        static long SecondsSinceEpoch(DateTimeOffset dateTimeOffset)
         {
-            const string format = "https://query1.finance.yahoo.com/v8/finance/chart/{0}?symbol={1}&period1={2}&period2={3}&useYfid=true&interval={4}&includePrePost=true&events=div|split|earn&lang=en-US&region=US&crumb=ibG1c1O0H9S&corsDomain=finance.yahoo.com";
-            var interval = GetChartInterval(range);
+            return (long)(dateTimeOffset.ToUniversalTime() - UnixEpoch).TotalSeconds;
+        }
 
+        // Note: This is the data used for generating the graph for a stock symbol's detailed view in the iOS Stocks app.
+        public Task<YahooFinanceChart> GetChartAsync(YahooFinanceQuote quote, YahooFinanceChartTimeRange range, CancellationToken cancellationToken = default)
+        {
             //period1: 1670878800
             //period2: 1671051600
 
@@ -401,9 +480,36 @@ namespace Stocks
             //var period1 = UnixEpoch.AddSeconds(1670878800); => 12/12/2022 4:00:00 PM
             //var period2 = UnixEpoch.AddSeconds(1671051600); => 12/14/2022 4:00:00 PM
 
-            GetChartParameters(quote, range, out var period1, out var period2);
+            GetChartParameters(quote, range, out var period1, out var period2, out var interval);
 
-            var requestUri = string.Format(format, quote.Symbol, quote.Symbol, SecondsSinceEpoch(period1), SecondsSinceEpoch(period2), interval);
+            return GetChartAsync(quote, period1, period2, interval, cancellationToken);
+        }
+
+        static void ValidateArguments(YahooFinanceQuote quote, DateTimeOffset period1, DateTimeOffset period2, YahooFinanceTimeInterval interval)
+        {
+            if (quote == null)
+                throw new ArgumentNullException(nameof(quote));
+
+            var firstTradeDate = UnixEpoch.AddMilliseconds(quote.FirstTradeDateMilliseconds);
+            var now = DateTimeOffset.UtcNow.ToOffset(quote.GmtOffset);
+
+            if (period1 < firstTradeDate || period1 >= now)
+                throw new ArgumentOutOfRangeException(nameof(period1));
+
+            if (period2 <= period1 || period2 >= now)
+                throw new ArgumentOutOfRangeException(nameof(period2));
+
+            if (!IsAllowedTimeInterval(period1, interval))
+                throw new ArgumentOutOfRangeException(nameof(interval), $"interval was {TimeIntervals[(int)interval]}");
+        }
+
+        // Note: This is the data used for generating the graph for a stock symbol's detailed view in the iOS Stocks app.
+        public async Task<YahooFinanceChart> GetChartAsync(YahooFinanceQuote quote, DateTimeOffset period1, DateTimeOffset period2, YahooFinanceTimeInterval interval, CancellationToken cancellationToken = default)
+        {
+            ValidateArguments(quote, period1, period2, interval);
+
+            const string format = "https://query1.finance.yahoo.com/v8/finance/chart/{0}?symbol={1}&period1={2}&period2={3}&useYfid=true&interval={4}&includePrePost=true&events=div|split|earn&lang=en-US&region=US&crumb=ibG1c1O0H9S&corsDomain=finance.yahoo.com";
+            var requestUri = string.Format(format, quote.Symbol, quote.Symbol, SecondsSinceEpoch(period1), SecondsSinceEpoch(period2), TimeIntervals[(int)interval]);
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -426,12 +532,7 @@ namespace Stocks
             }
         }
 
-        static long SecondsSinceEpoch(DateTime dt)
-        {
-            return (long)(dt - UnixEpoch).TotalSeconds;
-        }
-
-        public async Task<YahooStockData> GetHistoryAsync(string symbol, DateTime start, DateTime end, CancellationToken cancellationToken = default)
+        public async Task<YahooStockData> GetHistoryAsync(string symbol, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default)
         {
             const string format = "https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval=1d&events=history&includeAdjustedClose=true";
             var requestUri = string.Format(format, symbol, SecondsSinceEpoch(start), SecondsSinceEpoch(end));

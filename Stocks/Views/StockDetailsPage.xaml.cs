@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using System;
 using System.Globalization;
 
 using LiveChartsCore;
@@ -10,8 +10,6 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
 using LiveChartsCore.SkiaSharpView.Painting;
-using LiveChartsCore.SkiaSharpView.Painting.Effects;
-using LiveChartsCore.SkiaSharpView.SKCharts;
 using SkiaSharp;
 
 using LinearGradientPaint = LiveChartsCore.SkiaSharpView.Painting.LinearGradientPaint;
@@ -22,17 +20,17 @@ public partial class StockDetailsPage : ContentPage
 {
     static readonly StockPriceChartTimeRange[] TimeRanges = new StockPriceChartTimeRange[]
     {
-        new StockPriceChartTimeRange("1D", YahooTimeRange.OneDay),
-        new StockPriceChartTimeRange("1W", YahooTimeRange.FiveDay),
-        new StockPriceChartTimeRange("1M", YahooTimeRange.OneMonth),
-        new StockPriceChartTimeRange("3M", YahooTimeRange.ThreeMonth),
-        new StockPriceChartTimeRange("6M", YahooTimeRange.SixMonth),
-        new StockPriceChartTimeRange("YTD", YahooTimeRange.YearToDate),
-        new StockPriceChartTimeRange("1Y", YahooTimeRange.OneYear),
-        new StockPriceChartTimeRange("2Y", YahooTimeRange.TwoYear),
-        new StockPriceChartTimeRange("5Y", YahooTimeRange.FiveYear),
-        new StockPriceChartTimeRange("10Y", YahooTimeRange.TenYear),
-        new StockPriceChartTimeRange("ALL", YahooTimeRange.Max),
+        new StockPriceChartTimeRange("1D", YahooFinanceChartTimeRange.OneDay),
+        new StockPriceChartTimeRange("1W", YahooFinanceChartTimeRange.FiveDay),
+        new StockPriceChartTimeRange("1M", YahooFinanceChartTimeRange.OneMonth),
+        new StockPriceChartTimeRange("3M", YahooFinanceChartTimeRange.ThreeMonth),
+        new StockPriceChartTimeRange("6M", YahooFinanceChartTimeRange.SixMonth),
+        new StockPriceChartTimeRange("YTD", YahooFinanceChartTimeRange.YearToDate),
+        new StockPriceChartTimeRange("1Y", YahooFinanceChartTimeRange.OneYear),
+        new StockPriceChartTimeRange("2Y", YahooFinanceChartTimeRange.TwoYear),
+        new StockPriceChartTimeRange("5Y", YahooFinanceChartTimeRange.FiveYear),
+        new StockPriceChartTimeRange("10Y", YahooFinanceChartTimeRange.TenYear),
+        new StockPriceChartTimeRange("ALL", YahooFinanceChartTimeRange.Max),
     };
 
     const long OneTrillion = 1000000000000;
@@ -49,6 +47,7 @@ public partial class StockDetailsPage : ContentPage
     readonly Stock stock;
 
     CancellationTokenSource cancellationTokenSource;
+    List<StockTradePoint> values;
 
     public StockDetailsPage(Stock stock)
     {
@@ -64,13 +63,13 @@ public partial class StockDetailsPage : ContentPage
             }
         };
         StockPriceChart.TooltipFindingStrategy = TooltipFindingStrategy.CompareOnlyX;
-        StockPriceChart.DrawMargin = new Margin(0);
-        UpdateXAxis(YahooTimeRange.OneDay, null, null, null);
-        UpdateYAxis(TimeSpan.FromMinutes(1), null, null);
+        StockPriceChart.DrawMargin = new Margin(10, 5, 70, 30);
+        UpdateXAxis(YahooFinanceChartTimeRange.OneDay, null, TimeSpan.FromMinutes(1), null, null);
+        UpdateYAxis(null, null);
 
         foreach (var radio in StockPriceChartTimeRangesLayout.Children.OfType<RadioButton>())
         {
-            if (radio.Value is YahooTimeRange range && range == YahooTimeRange.OneDay)
+            if (radio.Value is YahooFinanceChartTimeRange range && range == YahooFinanceChartTimeRange.OneDay)
             {
                 radio.IsChecked = true;
                 OnStockPriceChartTimeRangeRadioChecked(radio, null);
@@ -229,9 +228,16 @@ public partial class StockDetailsPage : ContentPage
         if (units.Equals("d".AsSpan(), StringComparison.Ordinal))
             return TimeSpan.FromDays(value);
 
+        if (units.Equals("wk".AsSpan(), StringComparison.Ordinal))
+            return TimeSpan.FromDays(value * 7);
+
+        if (units.Equals("mo".AsSpan(), StringComparison.Ordinal))
+            return TimeSpan.FromDays(value * OneMonth);
+
         return TimeSpan.FromSeconds(value);
     }
 
+#if false
     static string HourlyLabeler(double ticks)
     {
         var utcTimestamp = new DateTime((long)ticks, DateTimeKind.Utc);
@@ -258,6 +264,40 @@ public partial class StockDetailsPage : ContentPage
     {
         return new DateTime((long)ticks, DateTimeKind.Utc).ToLocalTime().ToString("yyyy");
     }
+#else
+    string HourlyLabeler(double index)
+    {
+        var trade = values[Math.Min(Math.Max((int)index, 0), values.Count - 1)];
+        var timestamp = trade.Timestamp.ToLocalTime();
+        var hour = timestamp.Hour;
+
+        if (index < 0)
+            hour--;
+
+        if (hour > 12)
+            hour -= 12;
+
+        return hour.ToString();
+    }
+
+    string DailyLabeler(double index)
+    {
+        var trade = values[Math.Min(Math.Max((int)index, 0), values.Count - 1)];
+        return trade.Timestamp.ToLocalTime().ToString("dd");
+    }
+
+    string MonthlyLabeler(double index)
+    {
+        var trade = values[Math.Min(Math.Max((int)index, 0), values.Count - 1)];
+        return trade.Timestamp.ToLocalTime().ToString("MMM");
+    }
+
+    string YearlyLabeler(double index)
+    {
+        var trade = values[Math.Min(Math.Max((int)index, 0), values.Count - 1)];
+        return trade.Timestamp.ToLocalTime().ToString("yyyy");
+    }
+#endif
 
     static string HourlyTooltipFormatter(ChartPoint<FinancialPoint, BezierPoint<CircleGeometry>, LabelGeometry> point)
     {
@@ -267,15 +307,18 @@ public partial class StockDetailsPage : ContentPage
         return $"{dateTime}\r\n{value}";
     }
 
-    static string DefaultTooltipFormatter(ChartPoint<FinancialPoint, BezierPoint<CircleGeometry>, LabelGeometry> point)
+    static string DefaultTooltipFormatter(ChartPoint<StockTradePoint, BezierPoint<CircleGeometry>, LabelGeometry> point)
     {
-        var value = point.Model.Close.HasValue ? point.Model.Close.Value.ToString("0,0.00") : "-";
-        var dateTime = point.Model.Date.ToLocalTime().ToString("dddd, MMMM dd h:mm tt");
+        var dateTime = point.Model.Timestamp.ToLocalTime().ToString("dddd, MMMM dd h:mm tt");
+        var close = Format(point.Model.Close);
+        var open = Format(point.Model.Open);
+        var high = Format(point.Model.High);
+        var low = Format(point.Model.Low);
 
-        return $"{dateTime}\r\n{value}";
+        return $"{dateTime}\r\nOpen: {open}\r\nClose: {close}\r\nHigh: {high}\r\nLow: {low}";
     }
 
-    void UpdateXAxis(YahooTimeRange range, long[] timestamps, double? minLimit, double? maxLimit)
+    void UpdateXAxis(YahooFinanceChartTimeRange range, long[] timestamps, TimeSpan timeUnit, double? minLimit, double? maxLimit)
     {
         var close = DateTime.UnixEpoch.AddSeconds(timestamps != null && timestamps.Length > 0 ? timestamps[timestamps.Length - 1] : 0);
         var open = DateTime.UnixEpoch.AddSeconds(timestamps != null && timestamps.Length > 0 ? timestamps[0] : 0);
@@ -328,22 +371,29 @@ public partial class StockDetailsPage : ContentPage
                 LabelsPaint = new SolidColorPaint(labelColor),
                 LabelsAlignment = Align.Start,
                 Position = AxisPosition.Start,
-                SeparatorsAtCenter = false,
+                //SeparatorsAtCenter = false,
                 ShowSeparatorLines = true,
-                ForceStepToMin = true,
+                //ForceStepToMin = true,
+                //UnitWidth = timeUnit.Ticks,
                 MinLimit = minLimit,
                 MaxLimit = maxLimit,
-                MinStep = minStep,
-                Labeler = labeler,
+                //MinStep = minStep,
+                //Labeler = labeler,
                 IsVisible = true
             }
         };
     }
 
-    void UpdateYAxis(TimeSpan timeUnit, double? minLimit, double? maxLimit)
+    void UpdateYAxis(double? minLimit, double? maxLimit)
     {
         var gridColor = App.Current.UserAppTheme == AppTheme.Light ? SKColors.LightGray : SKColors.DarkSlateGray;
         var labelColor = App.Current.UserAppTheme == AppTheme.Light ? SKColors.Black : SKColors.White;
+
+        //if (maxLimit.HasValue)
+        //    maxLimit *= 1.01;
+
+        //if (minLimit.HasValue)
+        //    minLimit *= 0.99;
 
         StockPriceChart.YAxes = new[] {
             new Axis {
@@ -351,7 +401,6 @@ public partial class StockDetailsPage : ContentPage
                 LabelsPaint = new SolidColorPaint(labelColor),
                 LabelsAlignment = Align.Start,
                 Position = AxisPosition.End,
-                UnitWidth = timeUnit.Ticks,
                 ShowSeparatorLines = true,
                 MinLimit = minLimit,
                 MaxLimit = maxLimit,
@@ -360,17 +409,17 @@ public partial class StockDetailsPage : ContentPage
         };
     }
 
-    void UpdateChart(YahooTimeRange range, YahooFinanceChart chart)
+    void UpdateChart(YahooFinanceChartTimeRange range, YahooFinanceChart chart)
     {
         double maxTimestamp = DateTime.UnixEpoch.AddSeconds(chart.Meta.CurrentTradingPeriod.Regular.End).Ticks;
-        var timeUnits = GetDataGranularity(chart.Meta.DataGranularity);
+        var timeUnits = chart.Meta.DataGranularity;
         var quote = chart.Indicators.Quote[0];
         var timestamps = chart.Timestamp;
         double? minTimestamp = null;
         double open = 0, close = 0;
         double high = 0, low = 0;
 
-        var values = new List<FinancialPoint>(quote.Close.Length);
+        values = new List<StockTradePoint>(quote.Close.Length);
 
         if (quote.Close.Length > 0)
             minTimestamp = DateTime.UnixEpoch.AddSeconds(timestamps[0]).Ticks;
@@ -380,8 +429,20 @@ public partial class StockDetailsPage : ContentPage
             if (timestamps[i] > chart.Meta.CurrentTradingPeriod.Regular.End)
                 break;
 
-            var value = new FinancialPoint(DateTime.UnixEpoch.AddSeconds(timestamps[i]), quote.High[i], quote.Open[i], quote.Close[i], quote.Low[i]);
+            if (!quote.High[i].HasValue && !quote.Open[i].HasValue && !quote.Close[i].HasValue && !quote.Low[i].HasValue)
+                continue;
+
+            var value = new StockTradePoint(values.Count, DateTime.UnixEpoch.AddSeconds(timestamps[i]), quote.High[i], quote.Open[i], quote.Close[i], quote.Low[i]);
             values.Add(value);
+
+            if (!quote.High[i].HasValue)
+                Console.WriteLine();
+            if (!quote.Open[i].HasValue)
+                Console.WriteLine();
+            if (!quote.Close[i].HasValue)
+                Console.WriteLine();
+            if (!quote.Low[i].HasValue)
+                Console.WriteLine();
 
             if (open == 0) {
                 if (quote.Open[i].HasValue)
@@ -405,26 +466,37 @@ public partial class StockDetailsPage : ContentPage
 
         StockPriceChart.Series = new ISeries[]
         {
-            new LineSeries<FinancialPoint>
+            new LineSeries<StockTradePoint>
             {
                 Values = values,
                 Stroke = new SolidColorPaint(color, 2),
                 Fill = new LinearGradientPaint(color.WithAlpha(0x00), color.WithAlpha(0xaa), new SKPoint(0, 1), new SKPoint(0, 0)),
                 TooltipLabelFormatter = DefaultTooltipFormatter,
+                EnableNullSplitting = false,
                 GeometryFill = null,
-                GeometrySize = 0
+                GeometrySize = 0,
+                Mapping = (trade, point) =>
+                {
+                    point.SecondaryValue = trade.Index;
+                    if (trade.Close.HasValue)
+                        point.PrimaryValue = trade.Close.Value;
+                    //point.PrimaryValue = trade.High;
+                    //point.TertiaryValue = stock.Open;
+                    //point.QuaternaryValue = stock.Close;
+                    //point.QuinaryValue = stock.Low;
+                },
             }
         };
 
-        UpdateXAxis(range, timestamps, minTimestamp, maxTimestamp);
-        UpdateYAxis(timeUnits, low, high);
+        UpdateXAxis(range, timestamps, timeUnits, /*minTimestamp, maxTimestamp*/ (double) 0, (double) values.Count);
+        UpdateYAxis(low, high);
     }
 
     async void OnStockPriceChartTimeRangeRadioChecked(object sender, CheckedChangedEventArgs e)
     {
         var radio = (RadioButton)sender;
 
-        if (radio.Value is YahooTimeRange range)
+        if (radio.Value is YahooFinanceChartTimeRange range)
         {
             if (radio.IsChecked)
             {
