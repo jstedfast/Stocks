@@ -31,7 +31,7 @@ public class Stock
     public string ExchangeTimezoneShortName { get; set; }
 
     [JsonProperty("gmtOffSetMilliseconds")]
-    public long GmtOffSetMilliseconds { get; set; }
+    public long GmtOffsetMilliseconds { get; set; }
 
     [JsonIgnore]
     public YahooFinanceQuote Quote { get; private set; }
@@ -54,7 +54,7 @@ public class Stock
         Exchange = quote.Exchange;
         ExchangeTimezoneName = quote.ExchangeTimezoneName;
         ExchangeTimezoneShortName = quote.ExchangeTimezoneShortName;
-        GmtOffSetMilliseconds = quote.GmtOffSetMilliseconds;
+        GmtOffsetMilliseconds = quote.GmtOffsetMilliseconds;
 
         StockQuoteChanged?.Invoke(this, new StockQuoteChangedEventArgs(quote));
     }

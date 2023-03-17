@@ -17,13 +17,13 @@ namespace Stocks.YahooFinance
         public string InstrumentType { get; set; }
 
         [JsonProperty("firstTradeDate")]
-        public long FirstTradeDate { get; set; }
+        public long UnixFirstTradeDate { get; set; }
 
         [JsonProperty("regularMarketTime")]
-        public long RegularMarketTime { get; set; }
+        public long UnixRegularMarketTime { get; set; }
 
         [JsonProperty("gmtoffset")]
-        public long Gmtoffset { get; set; }
+        public long GmtOffsetSeconds { get; set; }
 
         [JsonProperty("timezone")]
         public string Timezone { get; set; }
@@ -61,52 +61,16 @@ namespace Stocks.YahooFinance
         [JsonProperty("validRanges")]
         public string[] ValidRanges { get; set; }
 
-        static bool TryParseDataGranularity(string value, out TimeSpan timespan)
-        {
-            if (value.Equals("1m", StringComparison.Ordinal))
-                timespan = TimeSpan.FromMinutes(1);
-            else if (value.Equals("2m", StringComparison.Ordinal))
-                timespan = TimeSpan.FromMinutes(2);
-            else if (value.Equals("5m", StringComparison.Ordinal))
-                timespan = TimeSpan.FromMinutes(5);
-            else if (value.Equals("15m", StringComparison.Ordinal))
-                timespan = TimeSpan.FromMinutes(15);
-            else if (value.Equals("30m", StringComparison.Ordinal))
-                timespan = TimeSpan.FromMinutes(30);
-            else if (value.Equals("60m", StringComparison.Ordinal))
-                timespan = TimeSpan.FromMinutes(60);
-            else if (value.Equals("90m", StringComparison.Ordinal))
-                timespan = TimeSpan.FromMinutes(90);
-            else if (value.Equals("1h", StringComparison.Ordinal))
-                timespan = TimeSpan.FromHours(1);
-            else if (value.Equals("1d", StringComparison.Ordinal))
-                timespan = TimeSpan.FromDays(1);
-            else if (value.Equals("1d", StringComparison.Ordinal))
-                timespan = TimeSpan.FromDays(1);
-            else if (value.Equals("5d", StringComparison.Ordinal))
-                timespan = TimeSpan.FromDays(5);
-            else if (value.Equals("1wk", StringComparison.Ordinal))
-                timespan = TimeSpan.FromDays(7);
-            else if (value.Equals("1mo", StringComparison.Ordinal))
-                timespan = TimeSpan.FromDays(365.25 / 12);
-            else if (value.Equals("3mo", StringComparison.Ordinal))
-                timespan = TimeSpan.FromDays(365.25 / 4);
-            else
-                timespan = TimeSpan.Zero;
-
-            return timespan.Ticks > 0;
-        }
+        [JsonIgnore]
+        public YahooFinanceTimeInterval DataGranularity => YahooFinanceClient.ParseDataGranularity(RawDataGranularity);
 
         [JsonIgnore]
-        public TimeSpan DataGranularity
-        {
-            get
-            {
-                if (RawDataGranularity != null && TryParseDataGranularity(RawDataGranularity, out var timespan))
-                    return timespan;
+        public TimeSpan GmtOffset => TimeSpan.FromSeconds(GmtOffsetSeconds);
 
-                return TimeSpan.Zero;
-            }
-        }
+        [JsonIgnore]
+        public DateTimeOffset FirstTradeDate => DateTimeOffset.FromUnixTimeSeconds(UnixFirstTradeDate).ToOffset(GmtOffset);
+
+        [JsonIgnore]
+        public DateTimeOffset RegularMarketTime => DateTimeOffset.FromUnixTimeSeconds(UnixRegularMarketTime).ToOffset(GmtOffset);
     }
 }

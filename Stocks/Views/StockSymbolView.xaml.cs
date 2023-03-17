@@ -81,35 +81,27 @@ public partial class StockSymbolView : ViewCell
         }
     }
 
-    static int GetDataGranularityInSeconds(string dataGranularity)
+    static int ToSeconds(YahooFinanceTimeInterval interval)
     {
-        int index = 0;
-
-        while (index < dataGranularity.Length && char.IsAsciiDigit(dataGranularity[index]))
-            index++;
-
-        if (!int.TryParse(dataGranularity.AsSpan(0, index), NumberStyles.None, CultureInfo.InvariantCulture, out var value))
-            return 1;
-
-        var units = dataGranularity.AsSpan(index);
-
-        if (units.Equals("m".AsSpan(), StringComparison.Ordinal))
-            return value * 60;
-
-        if (units.Equals("h".AsSpan(), StringComparison.Ordinal))
-            return value * 60 * 60;
-
-        if (units.Equals("d".AsSpan(), StringComparison.Ordinal))
-            return value * 24 * 60 * 60;
-
-        return value;
+        switch (interval)
+        {
+            case YahooFinanceTimeInterval.OneMinute:      return 60;
+            case YahooFinanceTimeInterval.TwoMinutes:     return 2 * 60;
+            case YahooFinanceTimeInterval.FiveMinutes:    return 5 * 60;
+            case YahooFinanceTimeInterval.FifteenMinutes: return 15 * 60;
+            case YahooFinanceTimeInterval.ThirtyMinutes:  return 30 * 60;
+            case YahooFinanceTimeInterval.SixtyMinutes:
+            case YahooFinanceTimeInterval.OneHour:        return 60 * 60;
+            case YahooFinanceTimeInterval.NinetyMinutes:  return 90 * 60;
+            default: throw new ArgumentOutOfRangeException("DataGranularity");
+        }
     }
 
     void UpdateSpark(YahooFinanceSpark spark)
     {
-        var granularity = GetDataGranularityInSeconds(spark.Meta.DataGranularity);
-        var tradingStart = spark.Meta.TradingPeriods[0][0].Start;
-        var tradingEnd = spark.Meta.TradingPeriods[0][0].End;
+        var tradingStart = spark.Meta.TradingPeriods[0][0].UnixStartTime;
+        var tradingEnd = spark.Meta.TradingPeriods[0][0].UnixEndTime;
+        var granularity = ToSeconds(spark.Meta.DataGranularity);
         var tradingSeconds = tradingEnd - tradingStart;
         var dataPoints = tradingSeconds / granularity;
         var baseline = new double[dataPoints];

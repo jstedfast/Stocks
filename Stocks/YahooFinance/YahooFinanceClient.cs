@@ -184,6 +184,38 @@ namespace Stocks.YahooFinance
 
 #endif // GENERATE_JSON_CLASSES
 
+        internal static YahooFinanceTimeInterval ParseDataGranularity(string value)
+        {
+            if (value.Equals("1m", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.OneMinute;
+            if (value.Equals("2m", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.TwoMinutes;
+            if (value.Equals("5m", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.FiveMinutes;
+            if (value.Equals("15m", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.FifteenMinutes;
+            if (value.Equals("30m", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.ThirtyMinutes;
+            if (value.Equals("60m", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.SixtyMinutes;
+            if (value.Equals("90m", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.NinetyMinutes;
+            if (value.Equals("1h", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.OneHour;
+            if (value.Equals("1d", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.OneDay;
+            if (value.Equals("5d", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.FiveDays;
+            if (value.Equals("1wk", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.OneWeek;
+            if (value.Equals("1mo", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.OneMonth;
+            if (value.Equals("3mo", StringComparison.Ordinal))
+                return YahooFinanceTimeInterval.ThreeMonths;
+
+            return (YahooFinanceTimeInterval)(-1);
+        }
+
         static void SetDefaultRequestHeaders(HttpRequestMessage request)
         {
             request.Headers.Add("Accept-Language", "en-US");
@@ -305,7 +337,7 @@ namespace Stocks.YahooFinance
             ValidateIndicator(indicator);
             ValidateTimeRange(range);
 
-            if (IsValidTimeInterval(range, interval))
+            if (!IsValidTimeInterval(range, interval))
                 throw new ArgumentOutOfRangeException(nameof(interval));
 
             return validSymbols;
@@ -315,8 +347,8 @@ namespace Stocks.YahooFinance
         {
             ValidateQuote(quote);
 
-            var firstTradeDate = UnixEpoch.AddMilliseconds(quote.FirstTradeDateMilliseconds);
             var now = DateTimeOffset.UtcNow.ToOffset(quote.GmtOffset);
+            var firstTradeDate = quote.FirstTradeDate;
 
             if (startTime < firstTradeDate || startTime >= now)
                 throw new ArgumentOutOfRangeException(nameof(startTime));
@@ -429,7 +461,6 @@ namespace Stocks.YahooFinance
         /// </summary>
         /// <remarks>
         /// <para>Gets the latest trading period of closing data at a 1 minute interval for each of the specified stock symbols.</para>
-        /// <para><see cref=""/></para>
         /// <para>A <see cref="YahooFinanceSpark"/> can be used to graph the fluctuation of stock prices over a period of time at a given interval.</para>
         /// </remarks>
         /// <param name="symbols">The stock symbols.</param>
@@ -543,19 +574,19 @@ namespace Stocks.YahooFinance
             if (ago.Days < 60) // ~2 months; max allowed for 30m intervals
                 return YahooFinanceTimeInterval.ThirtyMinutes;
 
-            if (ago.Days < 730) // ~2 years; max allowed for 60m/1h intervals
+            if (ago.Days <= 366) // ~12 months; this interval is safe up to 730 days
                 return YahooFinanceTimeInterval.OneHour;
 
-            if (ago.Days <= 2923) // 8 years
+            if (ago.Days <= 3653) // ~10 years
                 return YahooFinanceTimeInterval.OneDay;
 
-            if (ago.Days <= 8767) // 24 years
+            if (ago.Days <= 8767) // ~24 years
                 return YahooFinanceTimeInterval.FiveDays;
 
-            if (ago.Days <= 11689) // 32 years
+            if (ago.Days <= 11689) // ~32 years
                 return YahooFinanceTimeInterval.OneWeek;
 
-            if (ago.Days <= 46756) // 128 years
+            if (ago.Days <= 46756) // ~128 years
                 return YahooFinanceTimeInterval.OneMonth;
 
             return YahooFinanceTimeInterval.ThreeMonths;
@@ -565,17 +596,21 @@ namespace Stocks.YahooFinance
         {
             ValidateQuote(quote);
 
-            var firstTradeDate = UnixEpoch.AddMilliseconds(quote.FirstTradeDateMilliseconds);
             var now = DateTimeOffset.UtcNow.ToOffset(quote.GmtOffset);
+            var firstTradeDate = quote.FirstTradeDate;
             var tzOffset = quote.GmtOffset;
             DateTimeOffset close;
+
+            // FIXME: This code assumes that the regular market trading period is between 9:30 AM and 4:00 PM in the exchange's timezone.
+            //        If we used the YahooFinanceSpark instead, we could get the *actual* regular market period start and end times from
+            //        spark.Meta.TradingPeriods.Regular[0][0].Start/End.
 
             close = new DateTimeOffset(now.Year, now.Month, now.Day, 16, 0, 0, tzOffset);
 
             switch (range)
             {
                 case YahooFinanceTimeRange.OneDay:
-                    startTime = new DateTimeOffset(now.Year, now.Month, now.Day, 10, 0, 0, tzOffset);
+                    startTime = new DateTimeOffset(now.Year, now.Month, now.Day, 9, 30, 0, tzOffset);
                     if (now < startTime)
                     {
                         // The market hasn't yet opened. Use yesterday's data.
@@ -704,7 +739,7 @@ namespace Stocks.YahooFinance
                         // Use today's data.
                         endTime = close;
                     }
-                    startTime = new DateTimeOffset(now.Year, 1, 1, 10, 0, 0, tzOffset);
+                    startTime = new DateTimeOffset(now.Year, 1, 1, 9, 30, 0, tzOffset);
                     break;
                 case YahooFinanceTimeRange.Max:
                     if (now < close)
@@ -717,7 +752,7 @@ namespace Stocks.YahooFinance
                         // Use today's data.
                         endTime = close;
                     }
-                    startTime = new DateTimeOffset(firstTradeDate);
+                    startTime = firstTradeDate;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(range));

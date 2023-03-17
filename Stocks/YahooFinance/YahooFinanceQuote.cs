@@ -141,7 +141,7 @@ namespace Stocks.YahooFinance
         public string FullExchangeName { get; set; }
 
         [JsonProperty("gmtOffSetMilliseconds")]
-        public long GmtOffSetMilliseconds { get; set; }
+        public long GmtOffsetMilliseconds { get; set; }
 
         [JsonProperty("ipoExpectedDate", NullValueHandling = NullValueHandling.Ignore)]
         public string IpoExpectedDate { get; set; }
@@ -316,7 +316,7 @@ namespace Stocks.YahooFinance
         {
             get
             {
-                var offset = GmtOffSetMilliseconds;
+                var offset = GmtOffsetMilliseconds;
 
                 int hours = (int)offset / MillisecondsPerHour;
                 offset = offset % MillisecondsPerHour;
@@ -324,8 +324,17 @@ namespace Stocks.YahooFinance
                 offset = offset % MillisecondsPerMinute;
                 int seconds = (int)offset / MillisecondsPerSecond;
 
-                return new TimeSpan(hours, minutes, seconds);
+                var ts = TimeSpan.FromMilliseconds(GmtOffsetMilliseconds);
+                var ts2 = new TimeSpan(hours, minutes, seconds);
+
+                if (ts2 != ts)
+                    throw new Exception("TimeSpans do not match for GmtOffset");
+
+                return ts2;
             }
         }
+
+        [JsonIgnore]
+        public DateTimeOffset FirstTradeDate => DateTimeOffset.FromUnixTimeMilliseconds(FirstTradeDateMilliseconds).ToOffset(GmtOffset);
     }
 }

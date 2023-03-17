@@ -17,13 +17,13 @@ namespace Stocks.YahooFinance
         public string InstrumentType { get; set; }
 
         [JsonProperty("firstTradeDate")]
-        public long FirstTradeDate { get; set; }
+        public long UnixFirstTradeDate { get; set; }
 
         [JsonProperty("regularMarketTime")]
-        public long RegularMarketTime { get; set; }
+        public long UnixRegularMarketTime { get; set; }
 
         [JsonProperty("gmtoffset")]
-        public long Gmtoffset { get; set; }
+        public long GmtOffsetSeconds { get; set; }
 
         [JsonProperty("timezone")]
         public string Timezone { get; set; }
@@ -53,12 +53,24 @@ namespace Stocks.YahooFinance
         public YahooFinanceTradingPeriod[][] TradingPeriods { get; set; }
 
         [JsonProperty("dataGranularity")]
-        public string DataGranularity { get; set; }
+        public string RawDataGranularity { get; set; }
 
         [JsonProperty("range")]
         public string Range { get; set; }
 
         [JsonProperty("validRanges")]
         public string[] ValidRanges { get; set; }
+
+        [JsonIgnore]
+        public YahooFinanceTimeInterval DataGranularity => YahooFinanceClient.ParseDataGranularity(RawDataGranularity);
+
+        [JsonIgnore]
+        public TimeSpan GmtOffset => TimeSpan.FromSeconds(GmtOffsetSeconds);
+
+        [JsonIgnore]
+        public DateTimeOffset FirstTradeDate => DateTimeOffset.FromUnixTimeSeconds(UnixFirstTradeDate).ToOffset(GmtOffset);
+
+        [JsonIgnore]
+        public DateTimeOffset RegularMarketTime => DateTimeOffset.FromUnixTimeSeconds(UnixRegularMarketTime).ToOffset(GmtOffset);
     }
 }
