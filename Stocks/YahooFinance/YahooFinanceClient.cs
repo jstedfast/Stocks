@@ -601,6 +601,14 @@ namespace Stocks.YahooFinance
             var tzOffset = quote.GmtOffset;
             DateTimeOffset close;
 
+            // FIXME: This logic assumes that the particular Friday that it rewinds to was a valid trading day.
+
+            // If it is the weekend, rewind `now` to be Friday @ ~11 PM.
+            if (now.DayOfWeek == DayOfWeek.Sunday)
+                now = now.Subtract(TimeSpan.FromDays(1));
+            if (now.DayOfWeek == DayOfWeek.Saturday)
+                now = now.Subtract(now.TimeOfDay.Add(TimeSpan.FromHours(1)));
+
             // FIXME: This code assumes that the regular market trading period is between 9:30 AM and 4:00 PM in the exchange's timezone.
             //        If we used the YahooFinanceSpark instead, we could get the *actual* regular market period start and end times from
             //        spark.Meta.TradingPeriods.Regular[0][0].Start/End.
