@@ -601,24 +601,20 @@ namespace Stocks.YahooFinance
             var tzOffset = quote.GmtOffset;
             DateTimeOffset close;
 
-            // FIXME: This logic assumes that the particular Friday that it rewinds to was a valid trading day.
-
-            // If it is the weekend, rewind `now` to be Friday @ ~11 PM.
-            if (now.DayOfWeek == DayOfWeek.Sunday)
-                now = now.Subtract(TimeSpan.FromDays(1));
-            if (now.DayOfWeek == DayOfWeek.Saturday)
-                now = now.Subtract(now.TimeOfDay.Add(TimeSpan.FromHours(1)));
-
             // FIXME: This code assumes that the regular market trading period is between 9:30 AM and 4:00 PM in the exchange's timezone.
             //        If we used the YahooFinanceSpark instead, we could get the *actual* regular market period start and end times from
             //        spark.Meta.TradingPeriods.Regular[0][0].Start/End.
 
             close = new DateTimeOffset(now.Year, now.Month, now.Day, 16, 0, 0, tzOffset);
+            if (close.DayOfWeek == DayOfWeek.Sunday)
+                close = close.Subtract(TimeSpan.FromDays(2));
+            else if (close.DayOfWeek == DayOfWeek.Saturday)
+                close = close.Subtract(TimeSpan.FromDays(1));
 
             switch (range)
             {
                 case YahooFinanceTimeRange.OneDay:
-                    startTime = new DateTimeOffset(now.Year, now.Month, now.Day, 9, 30, 0, tzOffset);
+                    startTime = new DateTimeOffset(close.Year, close.Month, close.Day, 9, 30, 0, tzOffset);
                     if (now < startTime)
                     {
                         // The market hasn't yet opened. Use yesterday's data.
@@ -632,7 +628,6 @@ namespace Stocks.YahooFinance
                     }
                     break;
                 case YahooFinanceTimeRange.FiveDay:
-                    // Note: 5 business days ago is the same as 7 days ago.
                     if (now < close)
                     {
                         // The market hasn't closed yet. End with yesterday's data.
@@ -643,7 +638,10 @@ namespace Stocks.YahooFinance
                         // Use today's data.
                         endTime = close;
                     }
-                    startTime = endTime.AddDays(-7);
+                    if (close.DayOfWeek == DayOfWeek.Friday)
+                        startTime = endTime.AddDays(-5).Subtract(TimeSpan.FromHours(7));
+                    else
+                        startTime = endTime.AddDays(-7);
                     break;
                 case YahooFinanceTimeRange.OneMonth:
                     if (now < close)
@@ -747,7 +745,7 @@ namespace Stocks.YahooFinance
                         // Use today's data.
                         endTime = close;
                     }
-                    startTime = new DateTimeOffset(now.Year, 1, 1, 9, 30, 0, tzOffset);
+                    startTime = new DateTimeOffset(close.Year, 1, 1, 9, 30, 0, tzOffset);
                     break;
                 case YahooFinanceTimeRange.Max:
                     if (now < close)
