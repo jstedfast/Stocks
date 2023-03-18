@@ -78,7 +78,7 @@
                 </HorizontalStackLayout>
             </ScrollView>
 
-            <lvc:CartesianChart x:Name="StockPriceChart" Grid.Row="1" Grid.Column="0" Background="Transparent" WidthRequest="480" HeightRequest="360" HorizontalOptions="Start" VerticalOptions="Center" />
+            <lvc:CartesianChart x:Name="StockPriceChart" Grid.Row="1" Grid.Column="0" Background="Transparent" WidthRequest="480" HeightRequest="240" HorizontalOptions="Start" VerticalOptions="Center" />
         </Grid>
 
         <ScrollView Orientation="Horizontal" HorizontalOptions="FillAndExpand">
