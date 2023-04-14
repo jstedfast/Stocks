@@ -67,7 +67,7 @@ public partial class StockDetailsPage : ContentPage
             }
         };
         StockPriceChart.TooltipFindingStrategy = TooltipFindingStrategy.CompareOnlyX;
-        StockPriceChart.DrawMargin = new Margin(10, 5, 70, 30);
+        StockPriceChart.DrawMargin = new Margin(15, 5, 70, 30);
         UpdateXAxis(YahooFinanceTimeRange.OneDay, values, 0);
         UpdateYAxis(null, null);
 
@@ -114,10 +114,7 @@ public partial class StockDetailsPage : ContentPage
 
     void CancelChartUpdateOperation()
     {
-        if (cancellationTokenSource != null)
-        {
-            cancellationTokenSource.Cancel();
-        }
+        cancellationTokenSource?.Cancel();
     }
 
     protected override void OnDisappearing()
