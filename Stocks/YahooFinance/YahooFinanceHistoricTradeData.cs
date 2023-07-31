@@ -48,12 +48,12 @@ namespace Stocks.YahooFinance
 
             using (var reader = new StreamReader(stream, Encoding.UTF8, false, 4096, true))
             {
-                var line = await reader.ReadLineAsync();
+                var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
                 var tokens = line.Split(CsvDelimeters);
 
                 stockData.headers = tokens;
 
-                while ((line = await reader.ReadLineAsync()) != null)
+                while ((line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false)) != null)
                 {
                     tokens = line.Split(CsvDelimeters);
 
