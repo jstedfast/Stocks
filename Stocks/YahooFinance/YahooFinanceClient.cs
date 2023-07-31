@@ -16,16 +16,20 @@ namespace Stocks.YahooFinance
         static readonly string[] TimeRanges = new string[] { "1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max" };
         static readonly string[] Indicators = new string[] { "open", "close", "high", "low" };
         static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-        const string crumb = "ibG1c1O0H9S";
+        static readonly Uri CookieUri = new Uri("https://finance.yahoo.com");
+        const string DefaultCrumb = "ibG1c1O0H9S";
 
         public static readonly YahooFinanceClient Default = new YahooFinanceClient();
 
+        readonly HttpClientHandler handler;
         HttpClient client;
+        string crumb;
 
         static HttpClientHandler CreateDefaultHandler()
         {
             return new HttpClientHandler()
             {
+                AutomaticDecompression = DecompressionMethods.All,
                 CookieContainer = new CookieContainer(),
                 UseCookies = true
             };
@@ -53,7 +57,8 @@ namespace Stocks.YahooFinance
         /// </exception>
         public YahooFinanceClient(HttpClientHandler handler)
         {
-            client = new HttpClient(handler ?? throw new ArgumentNullException(nameof(handler)));
+            this.handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            this.client = new HttpClient(handler);
         }
 
         ~YahooFinanceClient()
@@ -216,11 +221,16 @@ namespace Stocks.YahooFinance
             return (YahooFinanceTimeInterval)(-1);
         }
 
-        static void SetDefaultRequestHeaders(HttpRequestMessage request)
+        void SetDefaultRequestHeaders(HttpRequestMessage request, bool includeCookies = true)
         {
             request.Headers.Add("Accept-Language", "en-US");
             request.Headers.Add("Connection", "keep-alive");
-            request.Headers.Add("User-Agent", "Mozilla/5.0");
+            request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/113.0");
+
+            if (includeCookies) {
+                var cookies = handler.CookieContainer.GetCookieHeader(CookieUri);
+                request.Headers.Add("Cookie", cookies);
+            }
         }
 
         static long SecondsSinceEpoch(DateTimeOffset dateTimeOffset)
@@ -362,6 +372,67 @@ namespace Stocks.YahooFinance
 
         #endregion Argument Validation
 
+        static bool ShouldRefreshCookies(CookieContainer container)
+        {
+            var cookies = container.GetCookies(CookieUri);
+
+            if (cookies.Count == 0)
+                return true;
+
+            // If the cookie expires in the next few minutes, let our caller know that we need to refresh.
+            var now = DateTime.UtcNow.AddMinutes(10);
+
+            for (int i = 0; i < cookies.Count; i++)
+            {
+                if (cookies[i].Expires < now)
+                    return true;
+            }
+
+            return false;
+        }
+
+        async Task RefreshCookiesAsync(CancellationToken cancellationToken)
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, "https://finance.yahoo.com/?guccounter=1"))
+            {
+                SetDefaultRequestHeaders(request, false);
+
+                using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
+                {
+                    var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!response.IsSuccessStatusCode)
+                        throw new YahooFinanceException(response.StatusCode, string.Empty, content);
+
+                    var index = content.IndexOf("\"crumb\":", StringComparison.Ordinal);
+
+                    if (index < 0)
+                        return;
+
+                    index += "\"crumb\":".Length;
+                    while (index < content.Length && char.IsWhiteSpace(content[index]))
+                        index++;
+
+                    if (index >= content.Length || content[index] != '"')
+                        return;
+
+                    int startIndex = ++index;
+                    while (index < content.Length && content[index] != '"')
+                        index++;
+
+                    crumb = content.Substring(startIndex, index - startIndex);
+                }
+            }
+        }
+
+        Task AutoRefreshCookiesAsync(CancellationToken cancellationToken)
+        {
+            if (ShouldRefreshCookies(handler.CookieContainer))
+                return RefreshCookiesAsync(cancellationToken);
+
+            return Task.CompletedTask;
+        }
+
         /// <summary>
         /// Get the latest stock trade quote for the specified stock symbol.
         /// </summary>
@@ -384,7 +455,9 @@ namespace Stocks.YahooFinance
         {
             ValidateSymbol(symbol);
 
-            var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={Uri.EscapeDataString(symbol)}";
+            await AutoRefreshCookiesAsync(cancellationToken).ConfigureAwait(false);
+            //https://query2.finance.yahoo.com/v7/finance/quote?symbols=^GSPC&formatted=true&crumb=ibG1c1O0H9S&lang=en-US&region=US&corsDomain=finance.yahoo.com&fields=exchangeTimezoneName,exchangeTimezoneShortName,regularMarketTime,gmtOffSetMilliseconds
+            var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={Uri.EscapeDataString(symbol)}&crumb={crumb}";
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -427,8 +500,10 @@ namespace Stocks.YahooFinance
         /// </exception>
         public async Task<Dictionary<string, YahooFinanceQuote>> GetQuotesAsync(IEnumerable<string> symbols, CancellationToken cancellationToken = default)
         {
+            await AutoRefreshCookiesAsync(cancellationToken).ConfigureAwait(false);
+
             var escapedSymbols = string.Join(",", ValidateSymbols(symbols).Select(Uri.EscapeDataString));
-            var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={escapedSymbols}";
+            var requestUri = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={escapedSymbols}&crumb={crumb}";
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -511,6 +586,8 @@ namespace Stocks.YahooFinance
         /// </exception>
         public async Task<Dictionary<string, YahooFinanceSpark>> GetSparksAsync(IEnumerable<string> symbols, YahooFinanceIndicator indicator, YahooFinanceTimeRange range, YahooFinanceTimeInterval interval, CancellationToken cancellationToken = default)
         {
+            await AutoRefreshCookiesAsync(cancellationToken).ConfigureAwait(false);
+
             const string format = "https://query1.finance.yahoo.com/v7/finance/spark?symbols={0}&range={1}&interval={2}&indicators={3}&includeTimestamps=false&includePrePost=false&corsDomain=finance.yahoo.com&.tsrc=finance";
             var escapedSymbols = string.Join(",", ValidateArguments(symbols, indicator, range, interval).Select(Uri.EscapeDataString));
             var requestUri = string.Format(format, escapedSymbols, TimeRanges[(int)range], TimeIntervals[(int)interval], Indicators[(int)indicator]);
@@ -895,8 +972,10 @@ namespace Stocks.YahooFinance
         {
             ValidateArguments(quote, startTime, endTime, interval);
 
+            await AutoRefreshCookiesAsync(cancellationToken).ConfigureAwait(false);
+
             const string format = "https://query1.finance.yahoo.com/v8/finance/chart/{0}?symbol={0}&period1={1}&period2={2}&useYfid=true&interval={3}&includePrePost=true&events=div|split|earn&lang=en-US&region=US&crumb={4}&corsDomain=finance.yahoo.com";
-            var requestUri = string.Format(format, quote.Symbol, SecondsSinceEpoch(startTime), SecondsSinceEpoch(endTime), TimeIntervals[(int)interval], crumb);
+            var requestUri = string.Format(format, quote.Symbol, SecondsSinceEpoch(startTime), SecondsSinceEpoch(endTime), TimeIntervals[(int)interval], crumb ?? DefaultCrumb);
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -952,7 +1031,9 @@ namespace Stocks.YahooFinance
         {
             ValidateSymbol(symbol);
 
-            const string format = "https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval={3}&events=history&includeAdjustedClose=true";
+            await AutoRefreshCookiesAsync(cancellationToken).ConfigureAwait(false);
+
+            const string format = "https://query1.finance.yahoo.com/v7/finance/download/{0}?period1={1}&period2={2}&interval={3}&events=history&includeAdjustedClose={4}";
             var requestUri = string.Format(format, symbol, SecondsSinceEpoch(startTime), SecondsSinceEpoch(endTime), TimeIntervals[(int)interval], includeAdjustedClose ? "true" : "false");
             int retries = 0;
 
@@ -964,7 +1045,7 @@ namespace Stocks.YahooFinance
             // Accept-Encoding: gzip, deflate, br
             // Referer: https://finance.yahoo.com/quote/AAPL/history
             // Connection: keep-alive
-            // Cookie: A1=d=AQABBNC5m2ICEChbmhRVuTXYEHia15UotzkFEgEBAQELnWKlYgAAAAAA_eMAAA&S=AQAAAliad9I6hSWkcEeAj9baCAQ; A3=d=AQABBNC5m2ICEChbmhRVuTXYEHia15UotzkFEgEBAQELnWKlYgAAAAAA_eMAAA&S=AQAAAliad9I6hSWkcEeAj9baCAQ; A1S=d=AQABBNC5m2ICEChbmhRVuTXYEHia15UotzkFEgEBAQELnWKlYgAAAAAA_eMAAA&S=AQAAAliad9I6hSWkcEeAj9baCAQ&j=US; GUC=AQEBAQFinQtipUIgIQS_; cmp=t=1654442040&j=0&u=1---; thamba=1; PRF=t%3DAAPL%252BBTC-USD%252BBTC
+            // Cookie: XXX
             // Upgrade-Insecure-Requests: 1
             // Sec-Fetch-Dest: document
             // Sec-Fetch-Mode: navigate
@@ -977,8 +1058,7 @@ namespace Stocks.YahooFinance
                 using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
                 {
                     SetDefaultRequestHeaders(request);
-                    request.Headers.Add("Referer", $"https://https://finance.yahoo.com/quote/{symbol}/history");
-                    //request.Headers.Add ("Cookie", "A1=d=AQABBNC5m2ICEChbmhRVuTXYEHia15UotzkFEgEBAQELnWKlYgAAAAAA_eMAAA&S=AQAAAliad9I6hSWkcEeAj9baCAQ; A3=d=AQABBNC5m2ICEChbmhRVuTXYEHia15UotzkFEgEBAQELnWKlYgAAAAAA_eMAAA&S=AQAAAliad9I6hSWkcEeAj9baCAQ; A1S=d=AQABBNC5m2ICEChbmhRVuTXYEHia15UotzkFEgEBAQELnWKlYgAAAAAA_eMAAA&S=AQAAAliad9I6hSWkcEeAj9baCAQ&j=US; GUC=AQEBAQFinQtipUIgIQS_; cmp=t=1654442040&j=0&u=1---");
+                    request.Headers.Add("Referer", $"https://finance.yahoo.com/quote/{symbol}/history");
 
                     using (var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
                     {
