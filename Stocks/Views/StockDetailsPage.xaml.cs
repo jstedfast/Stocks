@@ -108,6 +108,7 @@ public partial class StockDetailsPage : ContentPage
     {
         UpdateQuote(stock.Quote);
         stock.StockQuoteChanged += OnStockQuoteChanged;
+        stock.StockChartChanged += OnStockChartChanged;
 
         base.OnAppearing();
     }
@@ -120,6 +121,7 @@ public partial class StockDetailsPage : ContentPage
     protected override void OnDisappearing()
     {
         stock.StockQuoteChanged -= OnStockQuoteChanged;
+        stock.StockChartChanged -= OnStockChartChanged;
 
         CancelChartUpdateOperation();
 
@@ -208,6 +210,11 @@ public partial class StockDetailsPage : ContentPage
         UpdateQuote(e.Quote);
     }
 
+    void OnStockChartChanged(object sender, StockChartChangedEventArgs e)
+    {
+        UpdateChart(e.Range, e.Chart);
+    }
+
     static TimeSpan GetDataGranularity(string dataGranularity)
     {
         int index = 0;
@@ -237,6 +244,7 @@ public partial class StockDetailsPage : ContentPage
 
         return TimeSpan.FromSeconds(value);
     }
+
     string HourlyLabeler(double x)
     {
         int index = Math.Min(Math.Max((int)x, 0), values.Count - 1);
@@ -644,25 +652,38 @@ public partial class StockDetailsPage : ContentPage
         {
             if (radio.IsChecked)
             {
-                var cancellation = new CancellationTokenSource();
-                cancellationTokenSource = cancellation;
+                bool retry;
 
-                try
+                do
                 {
-                    var chart = await YahooFinanceClient.Default.GetChartAsync(stock.Quote, range, cancellation.Token);
-                    UpdateChart(range, chart);
-                    //MauiProgram.YahooFinanceThread.WatchChart(stock);
-                }
-                catch (OperationCanceledException) { }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
-                finally
-                {
-                    cancellationTokenSource = null;
-                    cancellation.Dispose();
-                }
+                    var cancellation = new CancellationTokenSource();
+                    cancellationTokenSource = cancellation;
+                    retry = false;
+
+                    try
+                    {
+                        var chart = await YahooFinanceClient.Default.GetChartAsync(stock.Quote, range, cancellation.Token);
+                        UpdateChart(range, chart);
+
+                        MauiProgram.YahooFinanceThread.Watch(stock, range);
+                        retry = false;
+                    }
+                    catch (OperationCanceledException) { }
+                    catch (YahooFinanceException yfe)
+                    {
+                        if (yfe.Code.StartsWith("Internal")) // Internal Server Error - FIXME: find out if we can check the http status code is 5xx
+                            retry = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                    finally
+                    {
+                        cancellationTokenSource = null;
+                        cancellation.Dispose();
+                    }
+                } while (retry);
             }
             else
             {

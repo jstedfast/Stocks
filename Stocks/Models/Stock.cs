@@ -43,6 +43,8 @@ public class Stock
 
     public event EventHandler<StockSparkChangedEventArgs> StockSparkChanged;
 
+    public event EventHandler<StockChartChangedEventArgs> StockChartChanged;
+
     internal void OnStockQuoteChanged(YahooFinanceQuote quote)
     {
         Quote = quote;
@@ -63,5 +65,10 @@ public class Stock
     {
         Spark = spark;
         StockSparkChanged?.Invoke(this, new StockSparkChangedEventArgs(spark));
+    }
+
+    internal void OnStockChartChanged(YahooFinanceTimeRange range, YahooFinanceChart chart)
+    {
+        StockChartChanged?.Invoke(this, new StockChartChangedEventArgs(range, chart));
     }
 }

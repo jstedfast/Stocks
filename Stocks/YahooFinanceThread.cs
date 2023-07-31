@@ -1,4 +1,6 @@
-﻿using Stocks.Models;
+﻿using System.Net;
+
+using Stocks.Models;
 using Stocks.YahooFinance;
 
 namespace Stocks;
@@ -11,6 +13,9 @@ public class YahooFinanceThread
     readonly Thread thread;
 
     StockPortfolio portfolio;
+
+    YahooFinanceTimeRange range;
+    Stock stock;
 
     public YahooFinanceThread(SynchronizationContext synchronizationContext)
     {
@@ -36,6 +41,15 @@ public class YahooFinanceThread
         Start();
     }
 
+    public void Watch(Stock stock, YahooFinanceTimeRange range)
+    {
+        lock (thread)
+        {
+            this.stock = stock;
+            this.range = range;
+        }
+    }
+
     void Start()
     {
         if (thread.ThreadState.HasFlag(ThreadState.Unstarted))
@@ -55,6 +69,10 @@ public class YahooFinanceThread
         public StockPortfolio Portfolio { get; set; }
         public Dictionary<string, YahooFinanceQuote> Quotes { get; set; }
         public Dictionary<string, YahooFinanceSpark> Sparks { get; set; }
+
+        public Stock Stock { get; set; }
+        public YahooFinanceTimeRange Range { get; set; }
+        public YahooFinanceChart Chart { get; set; }
     }
 
     void UpdateStocks(object state)
@@ -70,7 +88,23 @@ public class YahooFinanceThread
                 stock.OnStockSparkChanged(spark);
         }
 
+        if (context.Stock != null && context.Chart != null)
+            context.Stock.OnStockChartChanged(context.Range, context.Chart);
+
         //var json = JsonConvert.SerializeObject(context.Portfolio);
+    }
+
+    static bool IsUpdatable(YahooFinanceTimeRange range)
+    {
+        switch (range)
+        {
+            case YahooFinanceTimeRange.OneDay:
+            case YahooFinanceTimeRange.YearToDate:
+            case YahooFinanceTimeRange.Max:
+                return true;
+            default:
+                return false;
+        }
     }
 
     async void MainLoop()
@@ -84,7 +118,13 @@ public class YahooFinanceThread
             lock(thread)
             {
                 context.Portfolio = portfolio;
+                context.Stock = stock;
+                context.Range = range;
             }
+
+            context.Quotes = null;
+            context.Sparks = null;
+            context.Chart = null;
 
             symbols = new string[portfolio.Stocks.Length];
             for (int i = 0; i < portfolio.Stocks.Length; i++)
@@ -102,7 +142,6 @@ public class YahooFinanceThread
                 }
                 catch (Exception ex)
                 {
-                    context.Quotes = null;
                 }
 
                 try
@@ -115,12 +154,26 @@ public class YahooFinanceThread
                 }
                 catch (Exception ex)
                 {
-                    context.Sparks = null;
                 }
-
-                if (context.Quotes != null || context.Sparks != null)
-                    synchronizationContext.Post(UpdateStocks, context);
             }
+
+            if (context.Stock != null && IsUpdatable(context.Range))
+            {
+                try
+                {
+                    context.Chart = await client.GetChartAsync(context.Stock.Quote, context.Range, cancellation.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+
+            if (context.Quotes != null || context.Sparks != null || context.Chart != null)
+                synchronizationContext.Post(UpdateStocks, context);
 
             try
             {

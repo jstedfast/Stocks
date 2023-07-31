@@ -130,7 +130,12 @@ public partial class StockSymbolView : ViewCell
             }
         }
 
-        var color = stock.Quote.RegularMarketChange >= 0.0 ? SKColors.Green : SKColors.Red;
+        SKColor color;
+
+        if (stock.Quote != null)
+            color = stock.Quote.RegularMarketChange >= 0.0 ? SKColors.Green : SKColors.Red;
+        else
+            color = values[values.Length - 1] >= values[0] ? SKColors.Green : SKColors.Red;
 
         var cartesianChart = new SKCartesianChart
         {
