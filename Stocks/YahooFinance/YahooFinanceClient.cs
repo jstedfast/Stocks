@@ -229,7 +229,9 @@ namespace Stocks.YahooFinance
 
             if (includeCookies) {
                 var cookies = handler.CookieContainer.GetCookieHeader(CookieUri);
-                request.Headers.Add("Cookie", cookies);
+                //request.Headers.Add("Cookie", cookies);
+
+                request.Headers.Add("Cookie", "A1=d=AQABBIJFkmMCEMiUSSzBLarKdqR_BqUCX2oFEgEBCAGzX2SMZNxN0iMA_eMBAAcIgkWSY6UCX2o&S=AQAAAg4zjNfUN9dg72A7CqRSSVo; A3=d=AQABBIJFkmMCEMiUSSzBLarKdqR_BqUCX2oFEgEBCAGzX2SMZNxN0iMA_eMBAAcIgkWSY6UCX2o&S=AQAAAg4zjNfUN9dg72A7CqRSSVo; GUC=AQEBCAFkX7NkjEIgjQSR&s=AQAAAIoX_6ZS&g=ZF5o_w; A1S=d=AQABBIJFkmMCEMiUSSzBLarKdqR_BqUCX2oFEgEBCAGzX2SMZNxN0iMA_eMBAAcIgkWSY6UCX2o&S=AQAAAg4zjNfUN9dg72A7CqRSSVo&j=US; cmp=t=1683913930&j=0&u=1YNN; gpp=DBABBgAA~BVoIgACQ.YAAA; gpp_sid=8; thamba=1; PRF=newChartbetateaser%3D1%26t%3D%255EGSPC");
             }
         }
 
@@ -421,13 +423,14 @@ namespace Stocks.YahooFinance
                         index++;
 
                     crumb = content.Substring(startIndex, index - startIndex);
+                    crumb = DefaultCrumb;
                 }
             }
         }
 
         Task AutoRefreshCookiesAsync(CancellationToken cancellationToken)
         {
-            if (ShouldRefreshCookies(handler.CookieContainer))
+            if (ShouldRefreshCookies(handler.CookieContainer) && crumb == null)
                 return RefreshCookiesAsync(cancellationToken);
 
             return Task.CompletedTask;
@@ -975,7 +978,7 @@ namespace Stocks.YahooFinance
             await AutoRefreshCookiesAsync(cancellationToken).ConfigureAwait(false);
 
             const string format = "https://query1.finance.yahoo.com/v8/finance/chart/{0}?symbol={0}&period1={1}&period2={2}&useYfid=true&interval={3}&includePrePost=true&events=div|split|earn&lang=en-US&region=US&crumb={4}&corsDomain=finance.yahoo.com";
-            var requestUri = string.Format(format, quote.Symbol, SecondsSinceEpoch(startTime), SecondsSinceEpoch(endTime), TimeIntervals[(int)interval], crumb ?? DefaultCrumb);
+            var requestUri = string.Format(format, quote.Symbol, SecondsSinceEpoch(startTime), SecondsSinceEpoch(endTime), TimeIntervals[(int)interval], crumb);
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
