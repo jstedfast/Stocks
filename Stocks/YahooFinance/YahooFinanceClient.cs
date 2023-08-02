@@ -225,7 +225,7 @@ namespace Stocks.YahooFinance
         {
             request.Headers.Add("Accept-Language", "en-US");
             request.Headers.Add("Connection", "keep-alive");
-            request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/113.0");
+            request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0");
 
             if (includeCookies) {
                 var cookies = handler.CookieContainer.GetCookieHeader(CookieUri);
