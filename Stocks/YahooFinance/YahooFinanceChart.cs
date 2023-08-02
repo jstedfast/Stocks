@@ -1,7 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.Diagnostics;
+
+using Newtonsoft.Json;
 
 namespace Stocks.YahooFinance
 {
+    [DebuggerDisplay("{Meta.Symbol,nq}")]
     public class YahooFinanceChart
     {
         [JsonProperty("meta")]

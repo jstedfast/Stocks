@@ -1,7 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.Diagnostics;
+
+using Newtonsoft.Json;
 
 namespace Stocks.YahooFinance
 {
+    [DebuggerDisplay("{Description,nq} ({Symbol,nq})")]
     public class YahooFinanceQuote
     {
         const int MillisecondsPerSecond = 1000;
