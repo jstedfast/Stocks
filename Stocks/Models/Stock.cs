@@ -1,9 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using System.Diagnostics;
+
+using Newtonsoft.Json;
 
 using Stocks.YahooFinance;
 
 namespace Stocks.Models;
 
+[DebuggerDisplay("{DisplayName,nq} ({Symbol,nq})")]
 public class Stock
 {
     [JsonProperty("symbol", Required = Required.Always)]
