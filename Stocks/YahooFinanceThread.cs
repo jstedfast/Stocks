@@ -109,10 +109,9 @@ public class YahooFinanceThread
 
     async void MainLoop()
     {
-        var context = new PortfolioContext();
-
         while (!cancellation.IsCancellationRequested)
         {
+            var context = new PortfolioContext();
             string[] symbols;
 
             lock(thread)
@@ -121,10 +120,6 @@ public class YahooFinanceThread
                 context.Stock = stock;
                 context.Range = range;
             }
-
-            context.Quotes = null;
-            context.Sparks = null;
-            context.Chart = null;
 
             symbols = new string[portfolio.Stocks.Length];
             for (int i = 0; i < portfolio.Stocks.Length; i++)
