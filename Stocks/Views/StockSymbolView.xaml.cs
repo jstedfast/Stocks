@@ -37,8 +37,7 @@ public partial class StockSymbolView : ViewCell
         stock.StockQuoteChanged += OnQuoteChanged;
         stock.StockSparkChanged += OnSparkChanged;
 
-        if (stock.Quote != null)
-            UpdateQuote(stock.Quote);
+        UpdateQuote(stock.Quote);
 
         if (stock.Spark != null)
         {
@@ -65,19 +64,21 @@ public partial class StockSymbolView : ViewCell
 
     void UpdateQuote(YahooFinanceQuote quote)
     {
-        NameLabel.Text = quote.Name;
-        DescriptionLabel.Text = quote.Description;
-        MarketPriceLabel.Text = quote.RegularMarketPrice.ToString("0,0.00");
+        NameLabel.Text = quote?.Name ?? (stock.Symbol[0] == '^' ? stock.DisplayName : stock.Symbol);
+        DescriptionLabel.Text = quote?.Description ?? stock.LongName;
+        MarketPriceLabel.Text = (quote?.RegularMarketPrice ?? 0.0).ToString("0,0.00");
 
-        if (quote.RegularMarketChange >= 0.0)
+        var regularMarketChange = quote?.RegularMarketChange ?? 0.0;
+
+        if (regularMarketChange >= 0.0)
         {
             MarketChangeLabelBorder.BackgroundColor = Color.Parse("#65C466");
-            MarketChangeLabel.Text = string.Format("+{0:0.00}", quote.RegularMarketChange);
+            MarketChangeLabel.Text = string.Format("+{0:0.00}", regularMarketChange);
         }
         else
         {
             MarketChangeLabelBorder.BackgroundColor = Color.Parse("#EA4F3D");
-            MarketChangeLabel.Text = string.Format("{0:0.00}", quote.RegularMarketChange);
+            MarketChangeLabel.Text = string.Format("{0:0.00}", regularMarketChange);
         }
     }
 
