@@ -183,8 +183,6 @@ public class YahooFinanceThread
 
             // Wait 15 seconds or until the thread is cancelled.
             cancellation.Token.WaitHandle.WaitOne(15 * 1000);
-            if (cancellation.IsCancellationRequested)
-                break;
         }
     }
 }
