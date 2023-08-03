@@ -5,6 +5,7 @@
       "stocks": [
         {
           "symbol": "^DJI",
+          "displayName": "Dow Jones",
           "longName": "Dow Jones Industrial Average",
           "shortName": "Dow Jones Industrial Average",
           "currency": "USD",
@@ -15,6 +16,7 @@
         },
         {
           "symbol": "^IXIC",
+          "displayName": "NASDAQ",
           "longName": "NASDAQ Composite",
           "shortName": "NASDAQ Composite",
           "currency": "USD",
@@ -25,7 +27,8 @@
         },
         {
           "symbol": "^GSPC",
-          "longName": "S&P 500",
+          "displayName": "S&P 500",
+          "longName": "Standard & Poor's 500",
           "shortName": "S&P 500",
           "currency": "USD",
           "exchange": "SNP",
