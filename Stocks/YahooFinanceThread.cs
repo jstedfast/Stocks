@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-using Stocks.Models;
+﻿using Stocks.Models;
 using Stocks.YahooFinance;
 
 namespace Stocks;
@@ -8,10 +6,10 @@ namespace Stocks;
 public class YahooFinanceThread
 {
     readonly SynchronizationContext synchronizationContext;
-    readonly CancellationTokenSource cancellation;
     readonly YahooFinanceClient client;
     readonly Thread thread;
 
+    CancellationTokenSource cancellation;
     StockPortfolio portfolio;
 
     YahooFinanceTimeRange range;
@@ -53,7 +51,10 @@ public class YahooFinanceThread
     void Start()
     {
         if (thread.ThreadState.HasFlag(ThreadState.Unstarted))
+        {
+            cancellation = new CancellationTokenSource();
             thread.Start();
+        }
     }
 
     public void Stop()
@@ -62,6 +63,16 @@ public class YahooFinanceThread
             return;
 
         cancellation.Cancel();
+
+        try
+        {
+            thread.Join();
+        }
+        finally
+        {
+            cancellation.Dispose();
+            cancellation = null;
+        }
     }
 
     class PortfolioContext
@@ -107,7 +118,7 @@ public class YahooFinanceThread
         }
     }
 
-    async void MainLoop()
+    void MainLoop()
     {
         while (!cancellation.IsCancellationRequested)
         {
@@ -129,7 +140,7 @@ public class YahooFinanceThread
             {
                 try
                 {
-                    context.Quotes = await client.GetQuotesAsync(symbols, cancellation.Token);
+                    context.Quotes = client.GetQuotesAsync(symbols, cancellation.Token).GetAwaiter().GetResult();
                 }
                 catch (OperationCanceledException)
                 {
@@ -141,7 +152,7 @@ public class YahooFinanceThread
 
                 try
                 {
-                    context.Sparks = await client.GetSparksAsync(symbols, YahooFinanceIndicator.Close, YahooFinanceTimeRange.OneDay, YahooFinanceTimeInterval.OneMinute, cancellation.Token);
+                    context.Sparks = client.GetSparksAsync(symbols, YahooFinanceIndicator.Close, YahooFinanceTimeRange.OneDay, YahooFinanceTimeInterval.OneMinute, cancellation.Token).GetAwaiter().GetResult();
                 }
                 catch (OperationCanceledException)
                 {
@@ -156,7 +167,7 @@ public class YahooFinanceThread
             {
                 try
                 {
-                    context.Chart = await client.GetChartAsync(context.Stock.Quote, context.Range, cancellation.Token);
+                    context.Chart = client.GetChartAsync(context.Stock.Quote, context.Range, cancellation.Token).GetAwaiter().GetResult();
                 }
                 catch (OperationCanceledException)
                 {
@@ -170,14 +181,10 @@ public class YahooFinanceThread
             if (context.Quotes != null || context.Sparks != null || context.Chart != null)
                 synchronizationContext.Post(UpdateStocks, context);
 
-            try
-            {
-                await Task.Delay(15 * 1000, cancellation.Token);
-            }
-            catch (OperationCanceledException)
-            {
+            // Wait 15 seconds or until the thread is cancelled.
+            cancellation.Token.WaitHandle.WaitOne(15 * 1000);
+            if (cancellation.IsCancellationRequested)
                 break;
-            }
         }
     }
 }
