@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             xmlns:views="clr-namespace:Stocks.Views"
              x:Class="Stocks.MainPage">
 
     <Grid RowSpacing="6" ColumnSpacing="6" RowDefinitions="Auto,*">
@@ -19,11 +20,18 @@
             VerticalOptions="Start" />
 
         <ScrollView Orientation="Vertical" VerticalOptions="FillAndExpand" Grid.Row="1" Grid.Column="0">
-            <TableView x:Name="StockTableView" Intent="Data" VerticalOptions="FillAndExpand" HasUnevenRows="True">
-                <TableRoot>
-                    <TableSection />
-                </TableRoot>
-            </TableView>
+            <CollectionView x:Name="StockTableView" VerticalOptions="FillAndExpand">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout 
+                        Orientation="Vertical"
+                        ItemSpacing="8"/>
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <views:StockSymbolView />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </ScrollView>
 
     </Grid>

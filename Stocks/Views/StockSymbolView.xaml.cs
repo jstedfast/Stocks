@@ -17,21 +17,54 @@ using LinearGradientPaint = LiveChartsCore.SkiaSharpView.Painting.LinearGradient
 
 namespace Stocks.Views;
 
-public partial class StockSymbolView : ViewCell
+public partial class StockSymbolView : VerticalStackLayout
 {
-    readonly Stock stock;
+    Stock stock;
     SKData data;
 
-    public StockSymbolView(Stock stock)
+    public StockSymbolView()
     {
         InitializeComponent();
-        this.stock = stock;
     }
 
     public string Symbol { get { return stock.Symbol; } }
 
-    public Stock Stock => stock;
+    public Stock Stock { get { return stock; } }
 
+    protected override void OnBindingContextChanged()
+    {
+        base.OnBindingContextChanged();
+
+        if (stock != null)
+        {
+            stock.StockQuoteChanged -= OnQuoteChanged;
+            stock.StockSparkChanged -= OnSparkChanged;
+        }
+
+        stock = BindingContext as Stock;
+
+        if (stock != null)
+        {
+            stock.StockQuoteChanged += OnQuoteChanged;
+            stock.StockSparkChanged += OnSparkChanged;
+
+            UpdateQuote(stock.Quote);
+
+            if (stock.Spark != null)
+            {
+                try
+                {
+                    UpdateSpark(stock.Spark);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+        }
+    }
+
+#if false
     protected override void OnAppearing()
     {
         stock.StockQuoteChanged += OnQuoteChanged;
@@ -61,6 +94,7 @@ public partial class StockSymbolView : ViewCell
 
         base.OnDisappearing();
     }
+#endif
 
     void UpdateQuote(YahooFinanceQuote quote)
     {
@@ -127,7 +161,7 @@ public partial class StockSymbolView : ViewCell
             }
             else
             {
-                Console.WriteLine();
+                //Console.WriteLine();
             }
         }
 
@@ -180,7 +214,14 @@ public partial class StockSymbolView : ViewCell
 
     void OnQuoteChanged(object sender, StockQuoteChangedEventArgs e)
     {
-        UpdateQuote(e.Quote);
+        try
+        {
+            UpdateQuote(e.Quote);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
     }
 
     void OnSparkChanged(object sender, StockSparkChangedEventArgs e)
