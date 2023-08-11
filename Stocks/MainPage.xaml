@@ -19,20 +19,18 @@
             HorizontalOptions="Start"
             VerticalOptions="Start" />
 
-        <ScrollView Orientation="Vertical" VerticalOptions="FillAndExpand" Grid.Row="1" Grid.Column="0">
-            <CollectionView x:Name="StockTableView" VerticalOptions="FillAndExpand">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout 
+        <CollectionView x:Name="StockTableView" VerticalOptions="FillAndExpand" Grid.Row="1" Grid.Column="0">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout 
                         Orientation="Vertical"
                         ItemSpacing="8"/>
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <views:StockSymbolView />
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </ScrollView>
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <views:StockSymbolView />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
 
     </Grid>
 
