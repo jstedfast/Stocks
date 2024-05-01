@@ -453,15 +453,19 @@ public partial class StockDetailsPage : ContentPage
         }
     }
 
-    static string StockTradeTooltipFormatter(ChartPoint<StockTradePoint, BezierPoint<CircleGeometry>, LabelGeometry> point)
+    static string StockTradeTimestampFormatter(ChartPoint<StockTradePoint, CircleGeometry, LabelGeometry> point)
     {
-        var dateTime = point.Model.Timestamp.ToLocalTime().ToString("dddd, MMMM dd h:mm tt");
+        return point.Model.Timestamp.ToLocalTime().ToString("dddd, MMMM dd h:mm tt");
+    }
+
+    static string StockTradeQuoteFormatter(ChartPoint<StockTradePoint, CircleGeometry, LabelGeometry> point)
+    {
         var close = Format(point.Model.Close);
         var open = Format(point.Model.Open);
         var high = Format(point.Model.High);
         var low = Format(point.Model.Low);
 
-        return $"{dateTime}\r\nOpen: {open}\r\nClose: {close}\r\nHigh: {high}\r\nLow: {low}";
+        return $"Open: {open}\r\nClose: {close}\r\nHigh: {high}\r\nLow: {low}";
     }
 
     void UpdateXAxis(YahooFinanceTimeRange range, List<StockTradePoint> values, double minStep)
@@ -620,20 +624,18 @@ public partial class StockDetailsPage : ContentPage
                 Values = values,
                 Stroke = new SolidColorPaint(color, 2),
                 Fill = new LinearGradientPaint(color.WithAlpha(0x00), color.WithAlpha(0xaa), new SKPoint(0, 1), new SKPoint(0, 0)),
-                TooltipLabelFormatter = StockTradeTooltipFormatter,
+                XToolTipLabelFormatter = StockTradeTimestampFormatter,
+                YToolTipLabelFormatter = StockTradeQuoteFormatter,
                 EnableNullSplitting = false,
                 GeometryFill = null,
                 GeometrySize = 0,
                 LineSmoothness = 0,
-                Mapping = (trade, point) =>
+                Mapping = (trade, index) =>
                 {
-                    point.SecondaryValue = trade.Index;
-                    if (trade.Close.HasValue)
-                        point.PrimaryValue = trade.Close.Value;
-                    //point.PrimaryValue = trade.High;
-                    //point.TertiaryValue = stock.Open;
-                    //point.QuaternaryValue = stock.Close;
-                    //point.QuinaryValue = stock.Low;
+                    if (trade?.Close != null)
+                        return new Coordinate (index, trade.High.Value, trade.Open.Value, trade.Close.Value, trade.Low.Value);
+
+                    return new Coordinate (index, 0);
                 },
             }
         };
